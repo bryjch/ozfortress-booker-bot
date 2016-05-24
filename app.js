@@ -48,10 +48,7 @@ ircBot.connect(5, function () {
         
         // PM AuthServ login details
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
-        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
         UpdateServerList();
-        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
-        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
     });
 });
 
@@ -69,8 +66,6 @@ ircBot.addListener("message", function (from, to, text, message) {
         console.log("Something bad happened in 'message' listener.");
         return;
     }
-    
-    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "notice: " + from + " to " + to + " text: " + text);
 
     // iPGN-TF2 returns correct NEW BOOKING string (ignore non-smesbot)
     if (arr[6] === "booked" && arr[7] === "by" && arr[8] === "BookerBot") {
@@ -86,25 +81,14 @@ ircBot.addListener("message", function (from, to, text, message) {
     }
 });
 
-ircBot.addListener("pm", function (from, text, message) {
-    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "pm: " + text);
-
-});
-
 // Listen for notices from iPGN-TF2 that will have Server number and connect string
 ircBot.addListener("notice", function (from, to, text, message) {
     
     var arr = text.split(" ");
-    
-    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
 
     if (from === "[iPGN-TF2]" && to === "BookerBot") {
         
-        if (arr[1] === "Your" && arr[2] === "hostmask") {
-            discordBot.sendMessage(discordBot.channels.get("name", "testing"), "your fucking shit ASS HEROKU FUCK");
-        }
-
-        // Received server booking information
+        // Received server booking information (/book)
         if (arr[1] === "Details" && arr[2] === "for") {
             var serverNumber = arr[4];
             var user = FindWhoBookedServer(serverNumber);
@@ -113,7 +97,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
             discordBot.sendMessage(user, "\nYour booking details for Server " + serverNumber + ":\n\n```" + serverDetails + "```\n");
         }
         
-        // Received demo booking information
+        // Received demo booking information (/demos)
         if (arr[1] === "Demos" && arr[2] === "for") {
             var target = arr[3];
             var user = "";
@@ -128,7 +112,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
             discordBot.sendMessage(user, "Demos for " + target + " are available at:\n" + demoDetails);
         }
         
-        // Received server status information
+        // Received server status information (/servers)
         if (arr[1] === "The" && arr[2] === "status") {
             serverStatusLink = arr[10];
             UpdateServerList();
@@ -300,33 +284,23 @@ discordBot.on("message", function (message) {
         if (command[0] === "servers" || command[0] === "status") {
             console.log("\n[SERVER LIST] " + username + " | " + user);
             
-            //ircBot.say("#ozf-help", "!servers");
             UpdateServerList(function (data) {
                 console.log("Broadcasting server list to <testing> channel.");
                 discordBot.sendMessage(discordBot.channels.get("name", "testing"), data);
             });
         }
 
-        if (command[0] === "cookie") {
-            ircBot.say("#ozf-help", "cookie me you stupid fuck");
-        }
-        if (command[0] === "cookie2") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie smesbot");
-        }
-        
-        if (command[0] === "cookie3") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot knya0RuXUs");
-        }
-        
-        if (command[0] === "login") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
-        }
-
         // --------------- WHATEVER MINGER --------------- //
         if (command[0] === "thanks") {
             discordBot.sendMessage(user, "<3");
-            discordBot.setPlayingGame("catch with Elizabeth");
+            discordBot.setPlayingGame("catch with Elizabeth!");
         }
+        
+        // In case of hostmask errors with IRC login        
+        if (command[0] === "emailnewcookie") {
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie smesbot");
+        }
+
     }
 });
 
@@ -339,6 +313,12 @@ discordBot.on("ready", function () {
 });
 
 process.on("SIGINT", function () {
+    discordBot.logout();
+    ircBot.disconnect()
+    process.exit();
+});
+
+process.on("exit", function () {
     discordBot.logout();
     ircBot.disconnect()
     process.exit();
