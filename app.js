@@ -48,10 +48,10 @@ ircBot.connect(5, function () {
         
         // PM AuthServ login details
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
-        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
+        //discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
         UpdateServerList();
-        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
-        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
+        //discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
+        //ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
     });
 });
 
@@ -308,10 +308,12 @@ discordBot.on("message", function (message) {
         }
         
         if (command[0] === "cookie") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
             ircBot.say("ozf-help", "cookie me you stupid fuck");
         }
-        
+        if (command[0] === "cookie2") {
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
+        }
+
         // --------------- WHATEVER MINGER --------------- //
         if (command[0] === "thanks") {
             discordBot.sendMessage(user, "<3");
