@@ -1,0 +1,10 @@
+{
+  "name": "booker-bot",
+  "version": "0.0.0",
+  "description": "BookerBot",
+  "main": "app.js",
+  "author": {
+    "name": "Bryan Choo",
+    "email": ""
+  }
+}
