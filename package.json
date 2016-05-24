@@ -14,6 +14,7 @@
     "sanitize-html": "^1.11.4"
   },
   "scripts": {
+	"start": "node app.js"
   },
   "engines": {
 	"node": "^4.4.4",
