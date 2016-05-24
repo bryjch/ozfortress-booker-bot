@@ -9,7 +9,7 @@
   },
   "scripts": {
 	"start": "node app.js"
-  }
+  },
   "dependencies": {
     "columnify": "^1.5.4",
     "discord.js": "^7.0.1",
