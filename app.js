@@ -4,6 +4,8 @@ var IRC = require("irc");
 var http = require("http");
 var columnify = require("columnify");
 
+"use strict";
+
 console.log('\nBOOKERBOT ENGAGED --- OBJECTIVE: DESTROY ALL HUMANS\n');
 
 // ------------------------------------------------------------------------- //
@@ -26,12 +28,15 @@ var serverList = "";
 
 var serverStatusLink = "http://104.210.114.199:6003/?p=ecuador&m=servers";
 
+var portNumber = process.env.PORT || 3000;
+
 var ircBot = new IRC.Client("irc.web.gamesurge.net", "BookerBot", 
                              {
     sasl: true,
     userName: 'smesbot',
     password: 'BEcwjtmpmde7***',
     realName: 'Booker Dewitt',
+    port: portNumber,
     autoConnect: false
 });
 
