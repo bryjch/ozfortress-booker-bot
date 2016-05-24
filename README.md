@@ -21,6 +21,21 @@ It just runs as a standalone nodejs console application I guess?
 
 [columnify](https://github.com/timoxley/columnify)     ```bash npm install columnify@latest```  
 
+## To Do List
+- Decide on whether certain messages should be PMs or broadcasts.
+
+- Let user choose booking duration/map selection (if possible).
+
+- Listen for iPGN automatically resetting servers (then run UpdateServerList()).
+
+- Figure out what happens when servers are full and how to deal with it.
+
+- Update ```bookings[]``` and ```demoRequests[]``` to utilize Server List instead.
+
+- See if Client caching could be of benefit. (Client.add(), Client.remove()).
+
+- Clean up console logging to be log friendly.
+
 ## Etc
 I'll be honest, I still suck ass at using Github.
 
