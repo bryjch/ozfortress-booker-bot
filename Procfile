@@ -1,1 +1,1 @@
-web: npm run forever
+worker: node app.js
