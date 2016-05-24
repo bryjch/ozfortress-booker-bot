@@ -307,7 +307,7 @@ discordBot.on("message", function (message) {
         }
 
         if (command[0] === "cookie") {
-            ircBot.say("ozf-help", "cookie me you stupid fuck");
+            ircBot.say("#ozf-help", "cookie me you stupid fuck");
         }
         if (command[0] === "cookie2") {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
