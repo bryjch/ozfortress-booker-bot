@@ -48,10 +48,10 @@ ircBot.connect(5, function () {
         
         // PM AuthServ login details
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
-        //discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
+        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
         UpdateServerList();
-        //discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
-        //ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
+        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
+        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
     });
 });
 
@@ -70,9 +70,8 @@ ircBot.addListener("message", function (from, to, text, message) {
         return;
     }
     
-    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
-        
-    
+    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "notice: " + from + " to " + to + " text: " + text);
+
     // iPGN-TF2 returns correct NEW BOOKING string (ignore non-smesbot)
     if (arr[6] === "booked" && arr[7] === "by" && arr[8] === "BookerBot") {
         
@@ -87,7 +86,7 @@ ircBot.addListener("message", function (from, to, text, message) {
     }
 });
 
-ircBot.addListener("pm", function (from, text, message) { 
+ircBot.addListener("pm", function (from, text, message) {
     discordBot.sendMessage(discordBot.channels.get("name", "testing"), "pm: " + text);
 
 });
@@ -306,14 +305,14 @@ discordBot.on("message", function (message) {
                 discordBot.sendMessage(discordBot.channels.get("name", "testing"), data);
             });
         }
-        
+
         if (command[0] === "cookie") {
             ircBot.say("ozf-help", "cookie me you stupid fuck");
         }
         if (command[0] === "cookie2") {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
         }
-
+        
         // --------------- WHATEVER MINGER --------------- //
         if (command[0] === "thanks") {
             discordBot.sendMessage(user, "<3");
