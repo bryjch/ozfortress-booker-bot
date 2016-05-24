@@ -301,6 +301,7 @@ discordBot.on("message", function (message) {
         
         if (command[0] === "cookie") {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
+            ircBot.say("cookie me you stupid fuck");
         }
         
         // --------------- WHATEVER MINGER --------------- //
