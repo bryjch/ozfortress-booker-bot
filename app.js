@@ -70,6 +70,9 @@ ircBot.addListener("message", function (from, to, text, message) {
         return;
     }
     
+    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
+        
+    
     // iPGN-TF2 returns correct NEW BOOKING string (ignore non-smesbot)
     if (arr[6] === "booked" && arr[7] === "by" && arr[8] === "BookerBot") {
         
@@ -82,6 +85,11 @@ ircBot.addListener("message", function (from, to, text, message) {
         
         console.log("(Success) " + username + " has booked Server " + serverNumber + ".");
     }
+});
+
+ircBot.addListener("pm", function (from, text, message) { 
+    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "pm: " + text);
+
 });
 
 // Listen for notices from iPGN-TF2 that will have Server number and connect string
@@ -301,7 +309,7 @@ discordBot.on("message", function (message) {
         
         if (command[0] === "cookie") {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
-            ircBot.say("cookie me you stupid fuck");
+            ircBot.say("ozf-help", "cookie me you stupid fuck");
         }
         
         // --------------- WHATEVER MINGER --------------- //
