@@ -299,6 +299,10 @@ discordBot.on("message", function (message) {
             });
         }
         
+        if (command[0] === "cookie") {
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
+        }
+        
         // --------------- WHATEVER MINGER --------------- //
         if (command[0] === "thanks") {
             discordBot.sendMessage(user, "<3");
