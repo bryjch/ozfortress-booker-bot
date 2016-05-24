@@ -314,7 +314,7 @@ discordBot.on("message", function (message) {
         }
         
         if (command[0] === "cookie3") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot tH4ONQEVZP");
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot knya0RuXUs");
         }
         
         if (command[0] === "login") {
