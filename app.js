@@ -313,6 +313,14 @@ discordBot.on("message", function (message) {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie smesbot");
         }
         
+        if (command[0] === "cookie3") {
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot tH4ONQEVZP");
+        }
+        
+        if (command[0] === "login") {
+            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
+        }
+
         // --------------- WHATEVER MINGER --------------- //
         if (command[0] === "thanks") {
             discordBot.sendMessage(user, "<3");
