@@ -96,8 +96,9 @@ ircBot.addListener("notice", function (from, to, text, message) {
     
     var arr = text.split(" ");
     
+    discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
+
     if (from === "[iPGN-TF2]" && to === "BookerBot") {
-        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
         
         if (arr[1] === "Your" && arr[2] === "hostmask") {
             discordBot.sendMessage(discordBot.channels.get("name", "testing"), "your fucking shit ASS HEROKU FUCK");
