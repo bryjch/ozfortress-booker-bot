@@ -48,7 +48,10 @@ ircBot.connect(5, function () {
         
         // PM AuthServ login details
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot BEcwjtmpmde7***");
+        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 1");
         UpdateServerList();
+        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "getting here 2");
+        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie smesbot");
     });
 });
 
@@ -87,7 +90,12 @@ ircBot.addListener("notice", function (from, to, text, message) {
     var arr = text.split(" ");
     
     if (from === "[iPGN-TF2]" && to === "BookerBot") {
+        discordBot.sendMessage(discordBot.channels.get("name", "testing"), "got a notice irc " + from + " to " + to + " text: " + text);
         
+        if (arr[1] === "Your" && arr[2] === "hostmask") {
+            discordBot.sendMessage(discordBot.channels.get("name", "testing"), "your fucking shit ASS HEROKU FUCK");
+        }
+
         // Received server booking information
         if (arr[1] === "Details" && arr[2] === "for") {
             var serverNumber = arr[4];
