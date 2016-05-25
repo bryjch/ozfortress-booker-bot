@@ -4,10 +4,9 @@ var sanitize = require("sanitize-html");
 module.exports = function (link, callback) {
     http.get(link, function (response) {
         var body = "";
-
-        console.log("ParseServerList() got response: " + response.statusCode);
-
+        
         if (response.statusCode !== 200) {
+            console.log("ParseServerList() got response: " + response.statusCode);
             callback("error");
         }
 
@@ -53,7 +52,7 @@ module.exports = function (link, callback) {
                     servers[i]["Booker"] = segments[20];
                 }
             }
-
+            
             callback(servers);
         });
     });
