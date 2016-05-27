@@ -55,5 +55,8 @@ module.exports = function (link, callback) {
             
             callback(servers);
         });
+    
+    }).on("error", function () { 
+        callback("error");
     });
 };

@@ -17,12 +17,12 @@ var pendingRequests = {};
 
 var serverData;
 var serverList = "";
-var serverStatusLink = "http://104.210.114.199:6003/?p=ecuador&m=servers";
+var serverStatusLink = "";
 
 var ircBot = new IRC.Client("irc.web.gamesurge.net", "BookerBot", 
 {
     sasl: true,
-    userName: 'smesbot',
+    userName: 'BookerBot',
     realName: 'Booker Dewitt',
     autoConnect: false
 });
@@ -35,7 +35,8 @@ ircBot.connect(5, function () {
     ircBot.join("#ozf-help", function () {
         
         console.log("IRC Bot connected to #ozf-help.\n");
-        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth smesbot ihopeidontforgetthispasswordinthefuture777");
+        
+        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME  + " " + process.env.IRC_PASSWORD);
         UpdateServerList();
     });
 });
@@ -60,7 +61,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
             var user = FindWhoBookedServer(serverNumber);
             var serverDetails = msg.slice(6, 12).join(" ");
             
-            discordBot.sendMessage(user, "\nYour booking details for Server " + serverNumber + ":\n\n```" + serverDetails + "```\n");
+            discordBot.sendMessage(user, "\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
             pendingRequests[user] = "";
         });
     }
@@ -81,7 +82,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
             }
         }
         
-        discordBot.sendMessage(user, "Demos for " + target + " are available at:\n" + downloadLink);
+        discordBot.sendMessage(user, "Demos for **" + target + "** are available at:\n" + downloadLink);
         pendingRequests[user] = "";
     }
     
@@ -234,9 +235,7 @@ discordBot.on("message", function (message) {
     }
 });
 
-//discordBot.loginWithToken("MTgxNzUyMDgwODU4MzQ5NTY4.ChuTeA.NYXl89bZsRJZBlzK1dcmLzQfgqI");
-discordBot.loginWithToken("MTg0NTkwMzU2MDA2OTYxMTUz.CiWoqg.sGy6j_7fUVgeIEETGVw9NHbPe-A");
-
+discordBot.loginWithToken(process.env.BOT_TOKEN);
 
 function discordID(username) {
     var user = discordBot.users.get("username", username);
