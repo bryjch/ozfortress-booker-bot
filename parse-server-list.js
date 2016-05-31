@@ -43,12 +43,11 @@ module.exports = function (link, callback) {
                 var segments = arr[i].split(" ");
 
                 servers[i] = {};
-                servers[i]["Server"] = segments[2];
+                servers[i]["Number"] = segments[2];
                 servers[i]["Status"] = segments[5];
                 servers[i]["IP"] = segments[7];
 
                 if (segments[5] === "Booked") {
-                    //servers[i]["BookTime"] = segments[16] + " " + segments[17];   // The freaking time zone is totally wrong
                     servers[i]["Booker"] = segments[20];
                 }
             }
