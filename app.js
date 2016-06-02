@@ -9,7 +9,7 @@ var columnify = require("columnify");
 console.log('\nBOOKERBOT ENGAGED --- OBJECTIVE: DESTROY ALL HUMANS\n');
 
 var pendingRequests = {};   // Keeps a record of booking or demo requests
-var verifyUser = {};        // Keeps a record of who is currently booking each server
+var verifyUserFor = {};        // Keeps a record of who is currently booking each server
 
 var serverList;             // Server data in JSON form
 var serverStatusLink = "";  // Current HTTP address to get server information
@@ -101,7 +101,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                     discordBot.sendMessage(id, "\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
                     pendingRequests[id] = "";
                     pendingRequests[username] = "";
-                    verifyUser[id] = serverNumber;
+                    verifyUserFor[serverNumber] = id;
 
                 }
                 
@@ -152,7 +152,8 @@ function FindWhoBookedServer(number) {
     var IDs = [];
     
     for (var i = 0; i < users.length; i++) {
-        var trimmedUsername = users[i]["username"].replace(" ", "");
+        //var trimmedUsername = users[i]["username"].replace(" ", "");
+        var trimmedUsername = Alphanumeric(users[i]["username"]); // users[i]["username"].replace(" ", "");
         
         if (trimmedUsername === server["Booker"]) {
             IDs.push(users[i]["id"] + " " + trimmedUsername);
@@ -189,6 +190,16 @@ function UpdateServerList(callback) {
             };
             
             serverList = servers;   // Update program cache of server data
+            
+            // In case user doesn't /unbook through Discord, and the server auto resets:
+            // Reset the verifyUserFor[] value for their server to empty
+            for (var i = 0; i < serverList.length; i++) {
+                var server = serverList[i];
+                
+                if (server["Booker"] === "" || server["Booker"] === undefined) {
+                    verifyUserFor[server["Number"]] = "";
+                }
+            }
             
             var serverListFormatted = columnify(servers, columnVars);
             serverListFormatted = "```" + serverListFormatted + "```";
@@ -306,7 +317,8 @@ function BookServer(user) {
     // Get latest version of server list
     UpdateServerList(function () {
         
-        var username = user.username.replace(" ", "");
+        //var username = user.username.replace(" ", "");
+        var username = Alphanumeric(user.username); // user.username.replace(" ", "");
 
         // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
         for (var i = 0; i < serverList.length; i++) {
@@ -343,7 +355,8 @@ function UnbookServer(user) {
     
     UpdateServerList(function () {
         
-        var username = user.username.replace(" ", "");
+        //var username = user.username.replace(" ", "");
+        var username = Alphanumeric(user.username); //user.username.replace(" ", "");
 
         if (pendingRequests[user.id] === "booking") {
             console.log("(Failed) User needs to finish booking first.");
@@ -357,14 +370,15 @@ function UnbookServer(user) {
             // Found a server who was booked under <username>
             if (server["Booker"] === username) {
                 // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
-                if (server["Number"] !== verifyUser[user.id]) {
+                //if (server["Number"] !== verifyUser[user.id]) {
+                if (verifyUserFor[server["Number"]] !== user.id) {
                     console.log("[WARNING!] " + user + " attempted to unbook " + username + "'s server.");
                     discordBot.sendMessage(user, "Are you trying to do something bad?");
                 }
                 else {
                     ircBot.say("#ozf-help", "!reset " + server["Number"]);
                     discordBot.sendMessage(user, "You have successfully unbooked **Server " + server["Number"] + "**.");
-                    verifyUser[user.id] = "";
+                    verifyUserFor[server["Number"]] = "";
 
                 }
                 return;
@@ -380,6 +394,9 @@ function UnstuckUser(user) {
     pendingRequests[user.username] = "";
 }
 
+function Alphanumeric(string) {
+    return string.replace(/[^a-z0-9]/gi, "");
+}
 
 
 discordBot.on("ready", function () {
@@ -390,11 +407,11 @@ discordBot.on("ready", function () {
 process.on("SIGINT", function () {
     discordBot.logout();
     ircBot.disconnect()
-    process.exit();
+    //process.exit();
 });
 
 process.on("exit", function () {
     discordBot.logout();
     ircBot.disconnect()
-    process.exit();
+    //process.exit();
 });
