@@ -4,6 +4,8 @@ Discord to IRC bridge for ozfortress server booking. Allows Discord users to typ
 It just runs as a standalone nodejs console application I guess?
 
 ## Discord Commands
+The Bot only listens to commands via PM or in #servers channel.
+
 **/book** - Book a new server under user's Discord username
 
 **/unbook** - Unbook server
@@ -28,11 +30,11 @@ It just runs as a standalone nodejs console application I guess?
 
 - Let user choose booking duration/map selection (if possible).
 
-- Make verifyUserFor[] account for potential program resets.
+- Make ```verifyUserFor[]``` account for potential program resets.
 
-- Try to make BookServer() check for user.id instead of user.username.
+- Try to make ```BookServer()``` check for user.id instead of user.username.
 
-- Probably check contents of pendingRequests[] every x minutes/hours and remove empty values.
+- Probably check contents of ```pendingRequests[]``` every x minutes/hours and remove empty values.
 
 - Ensure proper CPU utilization.
 
