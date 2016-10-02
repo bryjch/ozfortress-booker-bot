@@ -37,14 +37,14 @@ ircBot.connect(5, function () {
         
         console.log("IRC Bot connected to #ozf-help.\n");
         
-        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
+        //ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
         
-        setTimeout(UpdateServerList(), 1000);
+        //setTimeout(UpdateServerList(), 1000);
          
     });
 });
 
-ircBot.addListener("message", function (from, to, text, message) { 
+ircBot.addListener("message", function (from, to, text, message) {
     
     var msg = text.split(" ");
     
@@ -55,7 +55,7 @@ ircBot.addListener("message", function (from, to, text, message) {
         
         console.log("(Failed) Servers were full.");
         for (var id in pendingRequests) {
-
+            
             if (pendingRequests[id] === "booking") {
                 pendingRequests[id] = "";               // Reset user's pendingRequest status so he isn't stuck
                 discordBot.sendMessage(id, "Sorry, all servers are currently in use. Type `/servers` to check server statuses.");
@@ -68,18 +68,18 @@ ircBot.addListener("message", function (from, to, text, message) {
 ircBot.addListener("notice", function (from, to, text, message) {
     
     var msg = text.split(" ");
-
+    
     // Ignore notices from all other sources
     if (from !== "[iPGN-TF2]" || to !== "BookerBot")
         return;
     
-
+    
     // Received server booking information (/book) --- Send Discord user server details
     // [iPGN-TF2] : � Details for server <serverNumber> (ozfortress): <serverDetails> �
-
+    
     if (msg[1] === "Details" && msg[2] === "for") {
-            
-        UpdateServerList(function () { 
+        
+        UpdateServerList(function () {
             var serverNumber = msg[4];
             var users = FindWhoBookedServer(serverNumber);  // This returns an array of in case of duplicate users
             var serverDetails = msg.slice(6, 12).join(" ");
@@ -90,7 +90,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 var username = msg[1];
                 
                 console.log("id: " + id + " user: " + username);
-                    
+                
                 // This asshole has a duplicate username. Don't send him details.
                 if (pendingRequests[id] !== "booking") {
                     discordBot.sendMessage(id, "What the hell are you doing man...");
@@ -110,17 +110,17 @@ ircBot.addListener("notice", function (from, to, text, message) {
         });
     }
     
-
+    
     // Received demo booking information (/demos) --- Send Discord user demo details
     // [iPGN-TF2] :  � Demos for <targetUser> are available at <downloadLink> �
-
+    
     if (msg[1] === "Demos" && msg[2] === "for") {
         var targetUser = msg[3];    // The person who's demos will be shown
         var downloadLink = msg[7];
         
         //Check which users have a pending demo request for <targetUser>
         for (var user in pendingRequests) {
-           
+            
             if (pendingRequests[user] === targetUser) {
                 discordBot.sendMessage(user, "Demos for **" + targetUser + "** are available at:\n" + downloadLink);
                 pendingRequests[user] = "";
@@ -130,10 +130,10 @@ ircBot.addListener("notice", function (from, to, text, message) {
     
     // Received server status information (/servers) --- Update server link and try again
     // [iPGN-TF2] :  � The status of all servers can be viewed at <latestLink> �
-
+    
     if (msg[1] === "The" && msg[2] === "status") {
         var latestLink = msg[10];
-
+        
         serverStatusLink = latestLink;
         UpdateServerList();
     }
@@ -146,7 +146,7 @@ ircBot.addListener("error", function (message) {
 
 // Find out who booked Server <number>, returns their Discord ID
 function FindWhoBookedServer(number) {
-   
+    
     var server = serverList[number - 1];
     var users = discordBot.users.getAll("User");
     var IDs = [];
@@ -160,7 +160,7 @@ function FindWhoBookedServer(number) {
         }
     }
     console.log(IDs);
-
+    
     return IDs;
 }
 
@@ -203,7 +203,7 @@ function UpdateServerList(callback) {
             
             var serverListFormatted = columnify(servers, columnVars);
             serverListFormatted = "```" + serverListFormatted + "```";
-
+            
             callback(serverListFormatted);
         }
         
@@ -217,28 +217,39 @@ function UpdateServerList(callback) {
 
 var discordBot = new Discord.Client();
 
-discordBot.on("message", function (message) {
-    
-    var content = message.content;
-    var user = message.author;              // Discord <User> object
-    var userid = message.author.id;           // Discord numeric ID (e.g. 12020045930)
-    var username = message.author.username; // Discord user name (e.g. smeso)
+//bot.on("message", msg => { 
+//    if (msg.content.startsWith("ping")) {
+//        msg.channel.sendMessage("pong!");
+//    }
+//});
+
+discordBot.on("message", msg => {
+
+    var content = msg.content;
+    var user = msg.author;              // Discord <User> object
+    var userid = msg.author.id;           // Discord numeric ID (e.g. 12020045930)
+    var username = msg.author.username; // Discord user name (e.g. smeso)
     
     var prefix = content[0];
     var command = content.substring(1, content.length).split(" ");
     
-    // Ignore all messages that aren't PMs or aren't in #servers channel
-    if (!message.channel.isPrivate && message.channel.name !== "servers")
+    // Ignore all messages that aren't DMs or aren't in #servers channel
+    if (msg.channel.type !== "dm" && msg.channel.name !== "servers") {
         return;
-    
+    }
+
+    if (msg.content.startsWith("ping")) {
+        msg.channel.sendMessage("pong!");
+    }
+
     if (prefix === "!" || prefix === "/") {
         
         // --------------- BOOK NEW SERVER --------------- //
-                
+        
         if (command[0] === "book") {
-
+            
             console.log("[BOOK NEW SERVER] " + user.username + " | " + user);
-
+            
             BookServer(user);
         }
         
@@ -250,7 +261,7 @@ discordBot.on("message", function (message) {
             
             UnbookServer(user);
         }
-
+        
         // --------------- REQUEST DEMOS --------------- //
         if (command[0] === "demos" || command[0] === "demo") {
             
@@ -259,35 +270,35 @@ discordBot.on("message", function (message) {
             console.log("\n[DEMO REQUEST for " + target + "] " + user.username + " | " + user);
             
             pendingRequests[user.id] = target;
-
+            
             ircBot.say("#ozf-help", "!demos " + target);
         }
         
         // --------------- REQUEST SERVER LIST--------------- //
         if (command[0] === "servers" || command[0] === "status") {
-
+            
             console.log("\n[SERVER LIST] " + user.username + " | " + user);
             
             UpdateServerList(function (data) {
-                discordBot.reply(message, data);
+                discordBot.reply(msg, data);
             });
         }
         
         // --------------- USAGE HELP --------------- //
         if (command[0] === "help") {
-
+            
             console.log("\n[HELP] " + user.username + " | " + user);
             
-            discordBot.reply(message, "```       Discord Server Booker Usage\n" +
-                                         "-----------------------------------------\n" + 
-                                         "/book          -  Book a new server\n" +
-                                         "/unbook        -  Return a server\n" + 
-                                         "/demos <user>  -  Get STV demo link (user optional)\n" +
-                                         "/servers       -  List the status of all servers\n" +
-                                         "/help          -  You get this, ya dingus!\n\n" +
-                                         "Whoever made this sure is a cool dude..!```");
+            msg.channel.sendMessage("```       Discord Server Booker Usage\n" +
+                                    "-----------------------------------------\n" + 
+                                    "/book          -  Book a new server\n" +
+                                    "/unbook        -  Return a server\n" + 
+                                    "/demos <user>  -  Get STV demo link (user optional)\n" +
+                                    "/servers       -  List the status of all servers\n" +
+                                    "/help          -  You get this, ya dingus!\n\n" +
+                                    "Whoever made this sure is a cool dude..!```");
         }
-       
+        
         
         // --------------- LOGIN MANAGEMENT --------------- //
         if (command[0] === "emailnewcookie") {
@@ -298,28 +309,28 @@ discordBot.on("message", function (message) {
             ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + command[1] + " " + command[2]);
             setTimeout(UpdateServerList(), 2000);
         }
-
+        
         if (command[0] === "x") {
             FindWhoBookedServer(1);
         }
-
+        
         if (command[0] === "stuck") {
             UnstuckUser(user);
         }
     }
 });
 
-discordBot.loginWithToken(process.env.BOT_TOKEN);
+discordBot.login(process.env.BOT_TOKEN);
 
 
 function BookServer(user) {
-
+    
     // Get latest version of server list
     UpdateServerList(function () {
         
         //var username = user.username.replace(" ", "");
         var username = Alphanumeric(user.username); // user.username.replace(" ", "");
-
+        
         // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
         for (var i = 0; i < serverList.length; i++) {
             var server = serverList[i];
@@ -343,7 +354,7 @@ function BookServer(user) {
             discordBot.sendMessage(user.id, "Are you a freaking duplicate user? Booking denied.");
             return;
         }
-
+        
         pendingRequests[user.id] = "booking";
         pendingRequests[username] = "booking";
         ircBot.say("#ozf-help", "!book 3 " + username);
@@ -357,13 +368,13 @@ function UnbookServer(user) {
         
         //var username = user.username.replace(" ", "");
         var username = Alphanumeric(user.username); //user.username.replace(" ", "");
-
+        
         if (pendingRequests[user.id] === "booking") {
             console.log("(Failed) User needs to finish booking first.");
             discordBot.sendMessage(user, "Please wait until your booking has been processed.");
             return;
         }
-
+        
         for (var i = 0; i < serverList.length; i++) {
             var server = serverList[i];
             
@@ -401,7 +412,7 @@ function Alphanumeric(string) {
 
 discordBot.on("ready", function () {
     console.log("Discord Bot connected to server.");
-    discordBot.setPlayingGame("catch with Elizabeth!");
+    discordBot.user.setStatus("online", "catch with Elizabeth!");
 });
 
 process.on("SIGINT", function () {
@@ -415,3 +426,18 @@ process.on("exit", function () {
     ircBot.disconnect()
     //process.exit();
 });
+
+//var Discord = require("discord.js");
+//var bot = new Discord.Client();
+
+//bot.on("message", msg => { 
+//    if (msg.content.startsWith("ping")) {
+//        msg.channel.sendMessage("pong!");
+//    }
+//});
+
+//bot.on('ready', () => { 
+//    console.log('I am ready!');
+//});
+
+//bot.login(process.env.BOT_TOKEN).catch(console.log);
