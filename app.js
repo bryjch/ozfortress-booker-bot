@@ -23,8 +23,8 @@ var serverStatusLink = "";  // Current HTTP address to get server information
 var ircBot = new IRC.Client("irc.web.gamesurge.net", "BookerBot", 
 {
     sasl: true,
-    userName: 'BookerBot',
-    realName: 'Booker Dewitt',
+    userName: 'ozfortressBookerBot',
+    realName: 'Booker',
     autoConnect: false
 });
 
@@ -296,7 +296,7 @@ discordBot.on("message", msg => {
                                     "/demos <user>  -  Get STV demo link (user optional)\n" +
                                     "/servers       -  List the status of all servers\n" +
                                     "/help          -  You get this, ya dingus!\n\n" +
-                                    "Whoever made this sure is a cool dude..!```");
+                                    "Discord booker created by smeso. Uses bladez's IRC booker.```");
         }
         
         
