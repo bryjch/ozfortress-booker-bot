@@ -55,11 +55,12 @@ ircBot.addListener("message", function (from, to, text, message) {
     if (msg[1] === "All" && msg[2] === "servers") {
         
         console.log("(Failed) Servers were full.");
-        for (var id in pendingRequests) {
+        for (var userID in pendingRequests) {
             
-            if (pendingRequests[id] === "booking") {
-                pendingRequests[id] = "";               // Reset user's pendingRequest status so he isn't stuck
-                discordBot.sendMessage(id, "Sorry, all servers are currently in use. Type `/servers` to check server statuses.");
+            if (pendingRequests[userID] === "booking") {
+                var user = discordBot.users.find('id', userID);
+                pendingRequests[userID] = "";               // Reset user's pendingRequest status so he isn't stuck
+                user.sendMessage("Sorry, all servers are currently in use. Type `/servers` to check server statuses.");
             }
         }
     }
@@ -162,8 +163,7 @@ function FindWhoBookedServer(number) {
                 IDs.push(users[i]["id"] + " " + trimmedUsername);
             }
         }
-        console.log(IDs);
-        
+
         return IDs;
     }
     catch (error) {
@@ -233,7 +233,7 @@ discordBot.on("message", msg => {
 
     var content = msg.content;
     var user = msg.author;              // Discord <User> object
-    var userid = msg.author.id;           // Discord numeric ID (e.g. 12020045930)
+    var userID = msg.author.id;           // Discord numeric ID (e.g. 12020045930)
     var username = msg.author.username; // Discord user name (e.g. smeso)
     
     var prefix = content[0];
@@ -271,7 +271,7 @@ discordBot.on("message", msg => {
             
             console.log("\n[DEMO REQUEST for " + target + "] " + user.username + " | " + user);
             
-            pendingRequests[user.id] = target;
+            pendingRequests[userID] = target;
             
             ircBot.say("#ozf-help", "!demos " + target);
         }
@@ -317,7 +317,8 @@ function BookServer(user) {
     UpdateServerList(function () {
         
         var username = Alphanumeric(user.username); // user.username.replace(" ", "");
-        
+        var userID = user.id;
+
         // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
         for (var i = 0; i < serverList.length; i++) {
             var server = serverList[i];
@@ -332,7 +333,7 @@ function BookServer(user) {
         // Prevent double booking if user inputs command multiple times
         // <user.id> refers to Discord ID number (123456789)
         // whereas <username> refers to literal name(John Doe)
-        if (pendingRequests[user.id] === "booking") {
+        if (pendingRequests[userID] === "booking") {
             console.log("(Failed) " + username + " already has a booking in progress.");
             user.sendMessage("Your booking is already in progress. Details will be PM'd to you.");
             return;
@@ -344,7 +345,7 @@ function BookServer(user) {
             return;
         }
         
-        pendingRequests[user.id] = "booking";
+        pendingRequests[userID] = "booking";
         pendingRequests[username] = "booking";
         ircBot.say("#ozf-help", "!book 3 " + username);
  
@@ -357,8 +358,9 @@ function UnbookServer(user) {
         
         //var username = user.username.replace(" ", "");
         var username = Alphanumeric(user.username); //user.username.replace(" ", "");
+        var userID = user.id;
         
-        if (pendingRequests[user.id] === "booking") {
+        if (pendingRequests[userID] === "booking") {
             console.log("(Failed) User needs to finish booking first.");
             user.sendMessage("Please wait until your booking has been processed.");
             return;
@@ -370,8 +372,8 @@ function UnbookServer(user) {
             // Found a server who was booked under <username>
             if (server["Booker"] === username) {
                 // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
-                //if (server["Number"] !== verifyUser[user.id]) {
-                if (verifyUserFor[server["Number"]] !== user.id) {
+                //if (server["Number"] !== verifyUser[userID]) {
+                if (verifyUserFor[server["Number"]] !== userID) {
                     console.log("[WARNING!] " + user + " attempted to unbook " + username + "'s server.");
                     user.sendMessage("Are you trying to do something bad?");
                 }
@@ -390,8 +392,11 @@ function UnbookServer(user) {
 }
 
 function UnstuckUser(user) {
-    pendingRequests[user.id] = "";
-    pendingRequests[user.username] = "";
+    var username = Alphanumeric(user.username);
+    var userID = user.id;
+    
+    pendingRequests[username] = "";
+    pendingRequests[userID] = "";
 }
 
 function Alphanumeric(string) {
