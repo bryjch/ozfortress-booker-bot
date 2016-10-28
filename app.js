@@ -118,11 +118,17 @@ ircBot.addListener("notice", function (from, to, text, message) {
         var targetUser = msg[3];    // The person who's demos will be shown
         var downloadLink = msg[7];
         
+        console.log("targetUser: " + targetUser);
+
         //Check which users have a pending demo request for <targetUser>
         for (var user in pendingRequests) {
             
+            console.log("user in pendingRequests: " + user);
+
             if (pendingRequests[user] === targetUser) {
-                discordBot.sendMessage(user, "Demos for **" + targetUser + "** are available at:\n" + downloadLink);
+                userObj = discordBot.users.find('id', user);
+                console.log(userObj);
+                userObj.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
                 pendingRequests[user] = "";
             }
         }
@@ -289,20 +295,16 @@ discordBot.on("message", msg => {
                                     "/demos <user>  -  Get STV demo link (user optional)\n" +
                                     "/servers       -  List the status of all servers\n" +
                                     "/help          -  You get this, ya dingus!\n\n" +
+                                    "Commands can be sent in the #server channel or via PM to the bot.\n" +
                                     "Big thanks to bladez's IRC booker!```");
         }
         
         
-        // --------------- LOGIN MANAGEMENT --------------- //
-        if (command[0] === "emailnewcookie") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie smesbot");
-        }
+        // --------------- LOGIN MANAGEMENT --------------- //    
+    if (command[0] === "users") {
         
-        if (command[0] === "loginirc") {
-            ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + command[1] + " " + command[2]);
-            setTimeout(UpdateServerList(), 2000);
-        }
-        
+    }
+
         if (command[0] === "x") {
             FindWhoBookedServer(1);
         }
@@ -329,7 +331,7 @@ function BookServer(user) {
             
             if (server["Booker"] === username) {
                 console.log("(Failed) " + username + " has already booked a server.");
-                discordBot.sendMessage(user, "You already have an ongoing server booking as " + username + ".");
+                user.sendMessage("You already have an ongoing server booking as " + username + ".");
                 return;
             }
         }
@@ -337,13 +339,13 @@ function BookServer(user) {
         // Prevent double booking if user inputs command multiple times
         if (pendingRequests[user.id] === "booking") {
             console.log("(Failed) " + username + " already has a booking in progress.");
-            discordBot.sendMessage(user.id, "Your booking is already in progress. Details will be PM'd to you.");
+            user.sendMessage("Your booking is already in progress. Details will be PM'd to you.");
             return;
         }
         
         if (pendingRequests[username] === "booking") {
             console.log("(Failed) " + username + " attempting to book as a duplicate.");
-            discordBot.sendMessage(user.id, "Are you a freaking duplicate user? Booking denied.");
+            user.sendMessage("Are you a duplicate user? Booking denied.");
             return;
         }
         
@@ -363,7 +365,7 @@ function UnbookServer(user) {
         
         if (pendingRequests[user.id] === "booking") {
             console.log("(Failed) User needs to finish booking first.");
-            discordBot.sendMessage(user, "Please wait until your booking has been processed.");
+            user.sendMessage("Please wait until your booking has been processed.");
             return;
         }
         
@@ -376,11 +378,11 @@ function UnbookServer(user) {
                 //if (server["Number"] !== verifyUser[user.id]) {
                 if (verifyUserFor[server["Number"]] !== user.id) {
                     console.log("[WARNING!] " + user + " attempted to unbook " + username + "'s server.");
-                    discordBot.sendMessage(user, "Are you trying to do something bad?");
+                    user.sendMessage("Are you trying to do something bad?");
                 }
                 else {
                     ircBot.say("#ozf-help", "!reset " + server["Number"]);
-                    discordBot.sendMessage(user, "You have successfully unbooked **Server " + server["Number"] + "**.");
+                    user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
                     verifyUserFor[server["Number"]] = "";
 
                 }
@@ -388,7 +390,7 @@ function UnbookServer(user) {
             }
         }
         console.log("(Failed) Could not find a server booked under " + username + ".");
-        discordBot.sendMessage(user, "Could not find a booking under your username **" + username + "**.");
+        user.sendMessage("Could not find a booking under your username **" + username + "**.");
     });
 }
 
@@ -418,18 +420,3 @@ process.on("exit", function () {
     ircBot.disconnect()
     //process.exit();
 });
-
-//var Discord = require("discord.js");
-//var bot = new Discord.Client();
-
-//bot.on("message", msg => { 
-//    if (msg.content.startsWith("ping")) {
-//        msg.channel.sendMessage("pong!");
-//    }
-//});
-
-//bot.on('ready', () => { 
-//    console.log('I am ready!');
-//});
-
-//bot.login(process.env.BOT_TOKEN).catch(console.log);
