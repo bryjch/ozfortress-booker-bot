@@ -44,6 +44,7 @@ ircBot.connect(5, function () {
     });
 });
 
+// MESSAGE LISTENER (Only involves 'All servers full' message)
 ircBot.addListener("message", function (from, to, text, message) {
     
     var msg = text.split(" ");
@@ -73,43 +74,44 @@ ircBot.addListener("notice", function (from, to, text, message) {
     if (from !== "[iPGN-TF2]" || to !== "BookerBot")
         return;
     
-    
     // Received server booking information (/book) --- Send Discord user server details
     // [iPGN-TF2] : � Details for server <serverNumber> (ozfortress): <serverDetails> �
     
     if (msg[1] === "Details" && msg[2] === "for") {
         
         UpdateServerList(function () {
-            var serverNumber = msg[4];
-            var users = FindWhoBookedServer(serverNumber);  // This returns an array of in case of duplicate users
-            var serverDetails = msg.slice(6, 12).join(" ");
             
-            users.forEach(function (user) {
-                var msg = user.split(" ");
-                var id = msg[0];
-                var username = msg[1];
+            try {
+                var serverNumber = msg[4];
+                var users = FindWhoBookedServer(serverNumber);  // This returns an array of in case of duplicate users
+                var serverDetails = msg.slice(6, 12).join(" ");
                 
-                console.log("id: " + id + " user: " + username);
-                
-                // This asshole has a duplicate username. Don't send him details.
-                if (pendingRequests[id] !== "booking") {
-                    discordBot.sendMessage(id, "What the hell are you doing man...");
-                   
-                }
-                else {
+                users.forEach(function (user) {
+                    var msg = user.split(" ");
+                    var userID = msg[0];
+                    var username = msg[1];
+                    var user = discordBot.users.find('id', userID);
                     
-                    discordBot.sendMessage(id, "\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
-                    pendingRequests[id] = "";
-                    pendingRequests[username] = "";
-                    verifyUserFor[serverNumber] = id;
-
-                }
-                
-            });
-            
+                    console.log("id: " + userID + " user: " + username);
+                    
+                    // This person has a duplicate username. Don't send him details.
+                    if (pendingRequests[userID] !== "booking") {
+                        user.sendMessage("Do you have a duplicate username?");
+                        user.sendMessage("Your request has been cancelled.");
+                    }
+                    else {
+                        user.sendMessage("\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
+                        pendingRequests[userID] = "";
+                        pendingRequests[username] = "";
+                        verifyUserFor[serverNumber] = userID;
+                    }
+                });
+            }
+            catch (error) {
+                console.log(error);
+            }
         });
     }
-    
     
     // Received demo booking information (/demos) --- Send Discord user demo details
     // [iPGN-TF2] :  � Demos for <targetUser> are available at <downloadLink> �
@@ -118,18 +120,13 @@ ircBot.addListener("notice", function (from, to, text, message) {
         var targetUser = msg[3];    // The person who's demos will be shown
         var downloadLink = msg[7];
         
-        console.log("targetUser: " + targetUser);
-
         //Check which users have a pending demo request for <targetUser>
-        for (var user in pendingRequests) {
+        for (var userID in pendingRequests) {
             
-            console.log("user in pendingRequests: " + user);
-
-            if (pendingRequests[user] === targetUser) {
-                userObj = discordBot.users.find('id', user);
-                console.log(userObj);
-                userObj.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
-                pendingRequests[user] = "";
+            if (pendingRequests[userID] === targetUser) {
+                user = discordBot.users.find('id', userID);
+                user.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
+                pendingRequests[userID] = "";
             }
         }
     }
@@ -149,25 +146,29 @@ ircBot.addListener("error", function (message) {
     console.log("[IRC ERROR] " + message.command);
 });
 
-
 // Find out who booked Server <number>, returns their Discord ID
 function FindWhoBookedServer(number) {
     
-    var server = serverList[number - 1];
-    var users = discordBot.users.getAll("User");
-    var IDs = [];
+    try {
+        var server = serverList[number - 1];
+        var users = discordBot.users.array();
+        var IDs = [];
     
-    for (var i = 0; i < users.length; i++) {
-        //var trimmedUsername = users[i]["username"].replace(" ", "");
-        var trimmedUsername = Alphanumeric(users[i]["username"]); // users[i]["username"].replace(" ", "");
-        
-        if (trimmedUsername === server["Booker"]) {
-            IDs.push(users[i]["id"] + " " + trimmedUsername);
+        for (var i = 0; i < users.length; i++) {
+          
+            var trimmedUsername = Alphanumeric(users[i]["username"]); // users[i]["username"].replace(" ", "");
+            
+            if (trimmedUsername === server["Booker"]) {
+                IDs.push(users[i]["id"] + " " + trimmedUsername);
+            }
         }
+        console.log(IDs);
+        
+        return IDs;
     }
-    console.log(IDs);
-    
-    return IDs;
+    catch (error) {
+        console.log(error);
+    }
 }
 
 // Get the data from serverStatusLink (i.e. webpage) and parse it
@@ -301,9 +302,16 @@ discordBot.on("message", msg => {
         
         
         // --------------- LOGIN MANAGEMENT --------------- //    
-    if (command[0] === "users") {
-        
-    }
+        if (command[0] === "list") {
+            console.log(serverList);
+            try {
+                var users = discordBot.users;
+                console.log(users);
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
 
         if (command[0] === "x") {
             FindWhoBookedServer(1);
