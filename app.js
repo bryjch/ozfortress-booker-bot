@@ -330,6 +330,8 @@ function BookServer(user) {
         }
         
         // Prevent double booking if user inputs command multiple times
+        // <user.id> refers to Discord ID number (123456789)
+        // whereas <username> refers to literal name(John Doe)
         if (pendingRequests[user.id] === "booking") {
             console.log("(Failed) " + username + " already has a booking in progress.");
             user.sendMessage("Your booking is already in progress. Details will be PM'd to you.");

@@ -26,19 +26,17 @@ The Bot only listens to commands via PM or in #servers channel.
 [columnify](https://github.com/timoxley/columnify)     ```bash npm install columnify@latest```  
 
 ## To Do List
-- Update the To Do List.
+- Make ```verifyUserFor[]``` account for potential program resets.
+
+- Clean up console logging to be log friendly. And clean up everything else I guess.
+
+- Ensure proper CPU utilization.
 
 - Let user choose booking duration/map selection (if possible).
-
-- Make ```verifyUserFor[]``` account for potential program resets.
 
 - Try to make ```BookServer()``` check for user.id instead of user.username.
 
 - Probably check contents of ```pendingRequests[]``` every x minutes/hours and remove empty values.
-
-- Ensure proper CPU utilization.
-
-- Clean up console logging to be log friendly. And clean up everything else I guess.
 
 - Separate all the crap instead of having a huge ass app.js.
 
