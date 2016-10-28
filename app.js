@@ -227,6 +227,8 @@ function UpdateServerList(callback) {
 
 var discordBot = new Discord.Client();
 
+discordBot.login(process.env.BOT_TOKEN);
+
 discordBot.on("message", msg => {
 
     var content = msg.content;
@@ -301,29 +303,12 @@ discordBot.on("message", msg => {
         }
         
         
-        // --------------- LOGIN MANAGEMENT --------------- //    
-        if (command[0] === "list") {
-            console.log(serverList);
-            try {
-                var users = discordBot.users;
-                console.log(users);
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-
-        if (command[0] === "x") {
-            FindWhoBookedServer(1);
-        }
-        
+        // --------------- UTILITY COMMANDS --------------- //
         if (command[0] === "stuck") {
             UnstuckUser(user);
         }
     }
 });
-
-discordBot.login(process.env.BOT_TOKEN);
 
 
 function BookServer(user) {
