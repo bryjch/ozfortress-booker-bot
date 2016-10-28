@@ -23,7 +23,7 @@ var serverStatusLink = "";  // Current HTTP address to get server information
 var ircBot = new IRC.Client("irc.web.gamesurge.net", "BookerBot", 
 {
     sasl: true,
-    userName: 'BookerBot',
+    userName: 'OzfortressBookerBot',
     realName: 'Booker Dewitt',
     autoConnect: false
 });
@@ -37,10 +37,10 @@ ircBot.connect(5, function () {
         
         console.log("IRC Bot connected to #ozf-help.\n");
         
-        //ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
+        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
         
-        //setTimeout(UpdateServerList(), 1000);
-         
+        // setTimeout error because it requires anonymous function as callback
+        UpdateServerList(); //setTimeout(UpdateServerList(), 1000);
     });
 });
 
@@ -166,12 +166,15 @@ function FindWhoBookedServer(number) {
 
 // Get the data from serverStatusLink (i.e. webpage) and parse it
 function UpdateServerList(callback) {
-    // Ensure callback parameter is optional
+    
+    // Ensure callback parameter is optional. Won't do anything with data if no callback
     if (typeof callback !== 'function') {
         callback = function (data) { };
     }
+
     // Parse the server statuses link. If successful will return an array with each server
     ParseServerList(serverStatusLink, function (servers) {
+        
         // There was something wrong with the link
         if (servers === "error") {
             ircBot.say("#ozf-help", "!servers");
@@ -188,25 +191,25 @@ function UpdateServerList(callback) {
                     Status: { minWidth: 10 }
                 }
             };
-            
+                
             serverList = servers;   // Update program cache of server data
-            
+                
             // In case user doesn't /unbook through Discord, and the server auto resets:
             // Reset the verifyUserFor[] value for their server to empty
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
-                
+                    
                 if (server["Booker"] === "" || server["Booker"] === undefined) {
                     verifyUserFor[server["Number"]] = "";
                 }
             }
-            
+                
             var serverListFormatted = columnify(servers, columnVars);
             serverListFormatted = "```" + serverListFormatted + "```";
-            
+                
+            // Return the data if there was a callback
             callback(serverListFormatted);
         }
-        
     });
 }
 
@@ -216,12 +219,6 @@ function UpdateServerList(callback) {
 // the user (!book, !unbook, !help).
 
 var discordBot = new Discord.Client();
-
-//bot.on("message", msg => { 
-//    if (msg.content.startsWith("ping")) {
-//        msg.channel.sendMessage("pong!");
-//    }
-//});
 
 discordBot.on("message", msg => {
 
@@ -236,10 +233,6 @@ discordBot.on("message", msg => {
     // Ignore all messages that aren't DMs or aren't in #servers channel
     if (msg.channel.type !== "dm" && msg.channel.name !== "servers") {
         return;
-    }
-
-    if (msg.content.startsWith("ping")) {
-        msg.channel.sendMessage("pong!");
     }
 
     if (prefix === "!" || prefix === "/") {
@@ -280,7 +273,7 @@ discordBot.on("message", msg => {
             console.log("\n[SERVER LIST] " + user.username + " | " + user);
             
             UpdateServerList(function (data) {
-                discordBot.reply(msg, data);
+                msg.channel.sendMessage(data);
             });
         }
         
@@ -296,7 +289,7 @@ discordBot.on("message", msg => {
                                     "/demos <user>  -  Get STV demo link (user optional)\n" +
                                     "/servers       -  List the status of all servers\n" +
                                     "/help          -  You get this, ya dingus!\n\n" +
-                                    "Whoever made this sure is a cool dude..!```");
+                                    "Big thanks to bladez's IRC booker!```");
         }
         
         
@@ -328,7 +321,6 @@ function BookServer(user) {
     // Get latest version of server list
     UpdateServerList(function () {
         
-        //var username = user.username.replace(" ", "");
         var username = Alphanumeric(user.username); // user.username.replace(" ", "");
         
         // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.

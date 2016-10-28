@@ -2,12 +2,20 @@ var http = require("http");
 var sanitize = require("sanitize-html");
 
 module.exports = function (link, callback) {
+
+    // Make sure there is a valid http link, otherwise callback error
+    if (!link) {
+        console.log("ParseServerList() didn't get a valid HTTP link.");
+        callback("error");
+        return;
+    }
+
     http.get(link, function (response) {
         var body = "";
         
         if (response.statusCode !== 200) {
-            console.log("ParseServerList() got response: " + response.statusCode);
             callback("error");
+            return;
         }
 
         response.on("data", function (chunk) {
