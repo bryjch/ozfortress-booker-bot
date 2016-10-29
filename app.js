@@ -298,7 +298,7 @@ discordBot.on("message", msg => {
                                     "/demos <user>  -  Get STV demo link (user optional)\n" +
                                     "/servers       -  List the status of all servers\n" +
                                     "/help          -  You get this, ya dingus!\n\n" +
-                                    "Commands can be sent in the #server channel or via PM to the bot.\n" +
+                                    "Commands can be sent in the #bookings channel or via PM to the bot.\n" +
                                     "Big thanks to bladez's IRC booker!```");
         }
 
@@ -311,11 +311,11 @@ discordBot.on("message", msg => {
         // Fix needed if IRC login is from different hostmask
         if (command[0] === "authcookie" && command[1] !== null) {
             if (command[1] === "request") {
-                ircBot.sendMessage("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie " + process.env.IRC_USERNAME);
+                ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie " + process.env.IRC_USERNAME);
                 console.log("Authcookie request sent to email address of " + process.env.IRC_USERNAME + ".");
             }
             else {
-                ircBot.sendMessage("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie " + process.env.IRC_USERNAME + " " + command[1]);
+                ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie " + process.env.IRC_USERNAME + " " + command[1]);
                 console.log("Attempted to authenticate with cookie: " + command[1]);
             }
         }
