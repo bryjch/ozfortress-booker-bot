@@ -39,8 +39,7 @@ ircBot.connect(5, function () {
 
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
 
-        // setTimeout error because it requires anonymous function as callback
-        UpdateServerList(); //setTimeout(UpdateServerList(), 1000);
+        UpdateServerList(); 
     });
 });
 
@@ -84,29 +83,22 @@ ircBot.addListener("notice", function (from, to, text, message) {
 
             try {
                 var serverNumber = msg[4];
-                var users = FindWhoBookedServer(serverNumber);  // This returns an array of in case of duplicate users
                 var serverDetails = msg.slice(6, 12).join(" ");
+                
+                var user = FindWhoBookedServer(serverNumber);
 
-                users.forEach(function (user) {
-                    var msg = user.split(" ");
-                    var userID = msg[0];
-                    var username = msg[1];
-                    var user = discordBot.users.find('id', userID);
+                var userID = user.id;
+                var username = Alphanumeric(user.username);
 
-                    console.log("id: " + userID + " user: " + username);
-
-                    // This person has a duplicate username. Don't send him details.
-                    if (pendingRequests[userID] !== "booking") {
-                        user.sendMessage("Do you have a duplicate username?");
-                        user.sendMessage("Your request has been cancelled.");
-                    }
-                    else {
-                        user.sendMessage("\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
-                        pendingRequests[userID] = "";
-                        pendingRequests[username] = "";
-                        verifyUserFor[serverNumber] = userID;
-                    }
-                });
+                if (pendingRequests[userID] !== "booking") {    // Dont think this will ever occur maybe remove?
+                    user.sendMessage("Do you have a duplicate username?");
+                    user.sendMessage("Your request has been cancelled.");
+                }
+                else {
+                    user.sendMessage("\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
+                    pendingRequests[userID] = "";
+                    verifyUserFor[serverNumber] = userID;
+                }
             }
             catch (error) {
                 console.log(error);
@@ -152,19 +144,9 @@ function FindWhoBookedServer(number) {
 
     try {
         var server = serverList[number - 1];
-        var users = discordBot.users.array();
-        var IDs = [];
+        var user = discordBot.users.find('id', server["Booker"]);
 
-        for (var i = 0; i < users.length; i++) {
-
-            var trimmedUsername = Alphanumeric(users[i]["username"]); // users[i]["username"].replace(" ", "");
-
-            if (trimmedUsername === server["Booker"]) {
-                IDs.push(users[i]["id"] + " " + trimmedUsername);
-            }
-        }
-
-        return IDs;
+        return user;
     }
     catch (error) {
         console.log(error);
@@ -406,7 +388,6 @@ function UnstuckUser(user) {
     var username = Alphanumeric(user.username);
     var userID = user.id;
 
-    pendingRequests[username] = "";
     pendingRequests[userID] = "";
 }
 
