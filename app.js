@@ -250,7 +250,7 @@ discordBot.on("message", msg => {
 
         if (command[0] === "book") {
 
-            console.log("[BOOK NEW SERVER] " + user.username + " | " + user);
+            console.log("[BOOK NEW SERVER] " + username + " | " + userID);
 
             BookServer(user);
         }
@@ -259,7 +259,7 @@ discordBot.on("message", msg => {
 
         if (command[0] === "unbook" || command[0] === "return" || command[0] === "reset") {
 
-            console.log("\n[UNBOOK SERVER] " + user.username + " | " + user);
+            console.log("\n[UNBOOK SERVER] " + username + " | " + userID);
 
             UnbookServer(user);
         }
@@ -267,9 +267,9 @@ discordBot.on("message", msg => {
         // --------------- REQUEST DEMOS --------------- //
         if (command[0] === "demos" || command[0] === "demo") {
 
-            var target = (typeof command[1] !== "undefined") ? command[1] : user.username;
+            var target = (typeof command[1] !== "undefined") ? command[1] : username;
 
-            console.log("\n[DEMO REQUEST for " + target + "] " + user.username + " | " + user);
+            console.log("\n[DEMO REQUEST for " + target + "] " + username + " | " + userID);
 
             pendingRequests[userID] = target;
 
@@ -279,7 +279,7 @@ discordBot.on("message", msg => {
         // --------------- REQUEST SERVER LIST--------------- //
         if (command[0] === "servers" || command[0] === "status") {
 
-            console.log("\n[SERVER LIST] " + user.username + " | " + user);
+            console.log("\n[SERVER LIST] " + username + " | " + userID);
 
             UpdateServerList(function (data) {
                 msg.channel.sendMessage(data);
@@ -289,7 +289,7 @@ discordBot.on("message", msg => {
         // --------------- USAGE HELP --------------- //
         if (command[0] === "help") {
 
-            console.log("\n[HELP] " + user.username + " | " + user);
+            console.log("\n[HELP] " + username + " | " + userID);
 
             msg.channel.sendMessage("```       Discord Server Booker Usage\n" +
                                     "-----------------------------------------\n" +
@@ -322,86 +322,85 @@ discordBot.on("message", msg => {
     }
 });
 
+// ----- BOOKING / UNBOOKING FUNCTIONS ----- //
 
 function BookServer(user) {
+    try {
+        UpdateServerList(function () {
 
-    // Get latest version of server list
-    UpdateServerList(function () {
+            var username = Alphanumeric(user.username);
+            var userID = user.id;
 
-        var username = Alphanumeric(user.username); // user.username.replace(" ", "");
-        var userID = user.id;
+            // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
+            for (var i = 0; i < serverList.length; i++) {
+                var server = serverList[i];
 
-        // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
-        for (var i = 0; i < serverList.length; i++) {
-            var server = serverList[i];
+                if (server["Booker"] === userID) {
+                    console.log("(Failed) " + username + " | " + userID + " has already booked a server.");
+                    user.sendMessage("You already have an ongoing server booking as " + username + ".");
+                    return;
+                }
+            }
 
-            if (server["Booker"] === username) {
-                console.log("(Failed) " + username + " has already booked a server.");
-                user.sendMessage("You already have an ongoing server booking as " + username + ".");
+            // Prevent double booking if user inputs command multiple times
+            // <user.id> refers to Discord ID number (123456789)
+            if (pendingRequests[userID] === "booking") {
+                console.log("(Failed) " + username + " already has a booking in progress.");
+                user.sendMessage("Your booking is already in progress. Details will be PM'd to you.");
                 return;
             }
-        }
 
-        // Prevent double booking if user inputs command multiple times
-        // <user.id> refers to Discord ID number (123456789)
-        // whereas <username> refers to literal name(John Doe)
-        if (pendingRequests[userID] === "booking") {
-            console.log("(Failed) " + username + " already has a booking in progress.");
-            user.sendMessage("Your booking is already in progress. Details will be PM'd to you.");
-            return;
-        }
+            pendingRequests[userID] = "booking";
+            ircBot.say("#ozf-help", "!book 3 " + userID);
 
-        if (pendingRequests[username] === "booking") {
-            console.log("(Failed) " + username + " attempting to book as a duplicate.");
-            user.sendMessage("Are you a duplicate user? Booking denied.");
-            return;
-        }
-
-        pendingRequests[userID] = "booking";
-        pendingRequests[username] = "booking";
-        ircBot.say("#ozf-help", "!book 3 " + username);
-
-    });
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
 }
 
 function UnbookServer(user) {
+    try {
+        UpdateServerList(function () {
 
-    UpdateServerList(function () {
+            var username = Alphanumeric(user.username);
+            var userID = user.id;
 
-        //var username = user.username.replace(" ", "");
-        var username = Alphanumeric(user.username); //user.username.replace(" ", "");
-        var userID = user.id;
-
-        if (pendingRequests[userID] === "booking") {
-            console.log("(Failed) User needs to finish booking first.");
-            user.sendMessage("Please wait until your booking has been processed.");
-            return;
-        }
-
-        for (var i = 0; i < serverList.length; i++) {
-            var server = serverList[i];
-
-            // Found a server who was booked under <username>
-            if (server["Booker"] === username) {
-                // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
-                //if (server["Number"] !== verifyUser[userID]) {
-                if (verifyUserFor[server["Number"]] !== userID) {
-                    console.log("[WARNING!] " + user + " attempted to unbook " + username + "'s server.");
-                    user.sendMessage("Are you trying to do something bad?");
-                }
-                else {
-                    ircBot.say("#ozf-help", "!reset " + server["Number"]);
-                    user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
-                    verifyUserFor[server["Number"]] = "";
-
-                }
+            // Prevent conflicting or multiple user command inputs
+            if (pendingRequests[userID] === "booking") {
+                console.log("(Failed) User needs to finish booking first.");
+                user.sendMessage("Please wait until your booking has been processed.");
                 return;
             }
-        }
-        console.log("(Failed) Could not find a server booked under " + username + ".");
-        user.sendMessage("Could not find a booking under your username **" + username + "**.");
-    });
+
+            // Check all servers if user has booked one of them or not
+            for (var i = 0; i < serverList.length; i++) {
+                var server = serverList[i];
+
+                // Found a server who was booked under <username>
+                if (server["Booker"] === userID) {
+                    // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
+                    if (verifyUserFor[server["Number"]] === userID) {   // This can probably be removed
+                        
+                        ircBot.say("#ozf-help", "!reset " + server["Number"]);
+                        user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
+                        verifyUserFor[server["Number"]] = "";
+
+                    }
+                    return;
+                }
+            }
+            console.log("(Failed) Could not find a server booked under " + username + ".");
+            user.sendMessage("Could not find a booking under your username **" + username + "**.");
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
 }
+
+// ----- HELPFUL FUNCTIONS ----- //
 
 function UnstuckUser(user) {
     var username = Alphanumeric(user.username);
@@ -415,6 +414,7 @@ function Alphanumeric(string) {
     return string.replace(/[^a-z0-9]/gi, "");
 }
 
+// ----- MISC PROGRAM LISTENERS ----- //
 
 discordBot.on("ready", function () {
     console.log("Discord Bot connected to server.");
