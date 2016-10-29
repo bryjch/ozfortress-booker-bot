@@ -79,6 +79,8 @@ ircBot.addListener("notice", function (from, to, text, message) {
 
     if (msg[1] === "Details" && msg[2] === "for") {
 
+        console.log('details for received');
+
         UpdateServerList(function () {
 
             try {
@@ -86,6 +88,9 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 var serverDetails = msg.slice(6, 12).join(" ");
                 
                 var user = FindWhoBookedServer(serverNumber);
+
+                console.log('user ---');
+                console.log(user);
 
                 var userID = user.id;
                 var username = Alphanumeric(user.username);
@@ -286,6 +291,17 @@ discordBot.on("message", msg => {
                 console.log("Attempted to authenticate with cookie: " + command[1]);
             }
         }
+
+        if (command[0] === "forcebook" && command[1] !== null) {
+            pendingRequests[userID] = "booking";
+            ircBot.say("#ozf-help", "!book 3 " + command[1]);
+            console.log('force book: ' + command[1]);
+        }
+
+        if (command[0] === "forceunbook" && command[1] !== null) {
+            ircBot.say("#ozf-help", "!reset " + command[1]);
+            console.log('force unbook: ' + command[1]);
+        }
     }
 });
 
@@ -373,7 +389,8 @@ function FindWhoBookedServer(number) {
 
     try {
         var server = serverList[number - 1];
-        var user = discordBot.users.find('id', server["Booker"]);
+        console.log('attempt at user ' + server["Booker"].substring(1));
+        var user = discordBot.users.find('id', server["Booker"].substring(1));
 
         return user;
     }
