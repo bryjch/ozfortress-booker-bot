@@ -247,7 +247,7 @@ discordBot.on("message", msg => {
         }
 
         // --------------- REQUEST DEMOS --------------- //
-        if (command[0] === "demos" || command[0] === "demo") {
+        if (command[0] === "demos1" || command[0] === "demo1") {
 
             var target = (typeof command[1] !== "undefined") ? command[1] : username;
 
