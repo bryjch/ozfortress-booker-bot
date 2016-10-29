@@ -100,9 +100,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                     verifyUserFor[serverNumber] = userID;
                 }
             }
-            catch (error) {
-                console.log(error);
-            }
+            catch (error) { console.log(error); }
         });
     }
 
@@ -139,19 +137,6 @@ ircBot.addListener("error", function (message) {
     console.log("[IRC ERROR] " + message.command);
 });
 
-// Find out who booked Server <number>, returns their Discord ID
-function FindWhoBookedServer(number) {
-
-    try {
-        var server = serverList[number - 1];
-        var user = discordBot.users.find('id', server["Booker"]);
-
-        return user;
-    }
-    catch (error) {
-        console.log(error);
-    }
-}
 
 // Get the data from serverStatusLink (i.e. webpage) and parse it
 function UpdateServerList(callback) {
@@ -383,6 +368,17 @@ function UnbookServer(user) {
 }
 
 // ----- HELPFUL FUNCTIONS ----- //
+
+function FindWhoBookedServer(number) {
+
+    try {
+        var server = serverList[number - 1];
+        var user = discordBot.users.find('id', server["Booker"]);
+
+        return user;
+    }
+    catch (error) { console.log(error); }
+}
 
 function UnstuckUser(user) {
     var username = Alphanumeric(user.username);
