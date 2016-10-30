@@ -290,24 +290,9 @@ discordBot.on("message", msg => {
             }
         }
 
-        if (command[0] === "forcebook" && command[1] !== null) {
-            pendingRequests[userID] = "booking";
-            ircBot.say("#ozf-help", "!book 3 " + command[1]);
-            console.log('force book: ' + command[1]);
-        }
-
-        if (command[0] === "forceunbook" && command[1] !== null) {
-            ircBot.say("#ozf-help", "!reset " + command[1]);
-            console.log('force unbook: ' + command[1]);
-        }
-
-        if (command[0] === "whobooked" && command[1] !== null) {
-            FindWhoBookedServer(command[1]);
-        }
-
-        if (command[0] === "allusers" && command[1] !== null) {
-            //FindDiscordUsers(command[1]);
-            //user.sendMessage("**" + user.username + user.discriminator + "** (");
+        if (command[0] === "find" && command[1] !== null) {
+            var users = FindDiscordUsers(command[1]);
+            user.sendMessage("Found *" + users.length + "* users called **" + command[1] + "**:```" + users + "```");
         }
     }
 });
