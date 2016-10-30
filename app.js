@@ -299,6 +299,10 @@ discordBot.on("message", msg => {
         if (command[0] === "whobooked" && command[1] !== null) {
             FindWhoBookedServer(command[1]);
         }
+
+        if (command[0] === "allusers") {
+            
+        }
     }
 });
 
@@ -336,9 +340,8 @@ function BookServer(user) {
                 return;
             }
 
-            console.log("No server booking found under " + username + userID + ". Get him a server!");
+            console.log("No server booking found under " + username + discriminator + ". Get him a server!");
             pendingRequests[userID] = "booking";
-            //ircBot.say("#ozf-help", "!book 3 u" + userID);
             ircBot.say("#ozf-help", "!book 3 " + username + discriminator); //e.g. smeso4522
 
         });
@@ -390,6 +393,10 @@ function UnbookServer(user) {
 }
 
 function RequestDemos(user, target) {
+
+}
+
+function GetDiscordUser(username, discriminator) {
 
 }
 
