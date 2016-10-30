@@ -90,7 +90,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 console.log(user);
 
                 var userID = user.id;
-                var username = Alphanumeric(user.username);
+                //var username = Alphanumeric(user.username);
 
                 if (pendingRequests[userID] !== "booking") {    // Dont think this will ever occur maybe remove?
                     user.sendMessage("Do you have a duplicate username?");
@@ -299,6 +299,10 @@ discordBot.on("message", msg => {
             ircBot.say("#ozf-help", "!reset " + command[1]);
             console.log('force unbook: ' + command[1]);
         }
+
+        if (command[0] === "whobooked" && command[1] !== null) {
+            FindWhoBookedServer(command[1]);
+        }
     }
 });
 
@@ -310,12 +314,13 @@ function BookServer(user) {
 
             var username = Alphanumeric(user.username);
             var userID = user.id;
+            var discriminator = user.discriminator;
 
             // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
 
-                if (server["Booker"] === ("u" + userID)) {
+                if (server["Booker"] === (userID + discriminator)) {
                     console.log("(Failed) " + username + " | u" + userID + " has already booked a server.");
                     user.sendMessage("You already have an ongoing server booking as " + username + ".");
                     return;
@@ -331,7 +336,8 @@ function BookServer(user) {
             }
 
             pendingRequests[userID] = "booking";
-            ircBot.say("#ozf-help", "!book 3 u" + userID);
+            //ircBot.say("#ozf-help", "!book 3 u" + userID);
+            ircBot.say("#ozf-help", "!book 3 " + username + discriminator); //e.g. smeso4522
 
         });
     }
@@ -346,6 +352,7 @@ function UnbookServer(user) {
 
             var username = Alphanumeric(user.username);
             var userID = user.id;
+            var discriminator = user.discriminator;
 
             // Prevent conflicting or multiple user command inputs
             if (pendingRequests[userID] === "booking") {
@@ -359,7 +366,7 @@ function UnbookServer(user) {
                 var server = serverList[i];
 
                 // Found a server who was booked under <username>
-                if (server["Booker"] === ("u" + userID)) {
+                if (server["Booker"] === (username + discriminator)) {
                     // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
                     if (verifyUserFor[server["Number"]] === userID) {   // This can probably be removed
                         
@@ -386,10 +393,41 @@ function FindWhoBookedServer(number) {
 
     try {
         var server = serverList[number - 1];
-        console.log('attempt at user ' + server["Booker"].substring(1));
-        var user = discordBot.users.find('id', server["Booker"].substring(1));
+        console.log('[FindWhoBookeddServer] Attempt to find ' + server["Booker"]);
+        //var user = discordBot.users.find('id', server["Booker"]);
 
-        return user;
+        var user = server["Booker"];    // smeso4522
+        var username = user.substring(0, user.length - 4); // smeso
+        var discriminator = user.substring(user.length - 4);   // 4522
+
+        console.log('user: ' + user + " | username: " + username + " | discriminator: " + discriminator);
+
+        var users = discordBot.users.findAll('username', username);
+
+        console.log(users);
+
+        for (var i = 0; i < users.length; i++) {
+            var user = users[i];
+            console.log(user);
+            console.log(user + " - " + user["discriminator"] + " vs" +discriminator);
+
+            if (user["discriminator"] === discriminator) {
+                console.log("user (" + username + " with disc (" + discriminator + ") found.");
+                return user;
+            }
+
+        }
+
+        /*
+        for (var user in users) {
+            console.log(user);
+            console.log(user + " - " + user["discriminator"] + " vs" +discriminator);
+            if (user["discriminator"] === discriminator) {
+                console.log("user (" + username + " with disc (" + discriminator + ") found.");
+                return user;
+            }
+        }
+        */
     }
     catch (error) { console.log(error); }
 }
@@ -416,11 +454,11 @@ discordBot.on("ready", function () {
 process.on("SIGINT", function () {
     discordBot.destroy();
     ircBot.disconnect()
-    //process.exit();
+    process.exit();
 });
 
 process.on("exit", function () {
     discordBot.destroy();
     ircBot.disconnect()
-    //process.exit();
+    process.exit();
 });
