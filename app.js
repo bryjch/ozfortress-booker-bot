@@ -263,7 +263,7 @@ discordBot.on("message", msg => {
                                     "/servers       -  List the status of all servers\n" +
                                     "/help          -  You get this, ya dingus!\n\n" +
                                     "Commands can be sent in the #bookings channel or via PM to the bot.\n" +
-                                    "Big thanks to bladez's IRC booker!```");
+                                    "Bot written by smeso. Big thanks to bladez's IRC booker!```");
         }
 
 
@@ -305,13 +305,9 @@ function BookServer(user) {
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
 
-                console.log(server["Booker"] + ' vs ' + username + discriminator);
                 if (server["Booker"] === (username + discriminator)) {
                     console.log("(Failed) " + username + " | " + username + discriminator + " has already booked a server.");
-                    user.sendMessage("You have already booked **Server " + (i + 1) + "** under **" + username + discriminator + "**.");
-
-                    // Resend details
-                    user.sendMessage('```' + pendingRequests[userID] + '```');
+                    user.sendMessage("You have already booked **Server " + (i + 1) + "** under **" + username + discriminator + "**.\n ```" + pendingRequests[userID] + "```");
 
                     return;
                 }
@@ -357,19 +353,17 @@ function UnbookServer(user) {
 
                 // Found a server who was booked under <username>
                 if (server["Booker"] === (username + discriminator)) {
-                    // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
-                    if (verifyUserFor[server["Number"]] === userID) {   // This can probably be removed
-                        
-                        ircBot.say("#ozf-help", "!reset " + server["Number"]);
-                        user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
-                        verifyUserFor[server["Number"]] = "";
+                    
+                    // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)                        
+                    ircBot.say("#ozf-help", "!reset " + server["Number"]);
+                    user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
+                    verifyUserFor[server["Number"]] = "";
 
-                    }
                     return;
                 }
             }
-            console.log("(Failed) Could not find a server booked under " + username + ".");
-            user.sendMessage("Could not find a booking under your username **" + username + "**.");
+            console.log("(Failed) Could not find a server booked under " + username + discriminator + ".");
+            user.sendMessage("Could not find a booking under your username **" + username + discriminator + "**.");
         });
     }
     catch (error) {
