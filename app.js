@@ -79,8 +79,6 @@ ircBot.addListener("notice", function (from, to, text, message) {
 
     if (msg[1] === "Details" && msg[2] === "for") {
 
-        console.log('details for received');
-
         UpdateServerList(function () {
 
             try {
@@ -89,7 +87,6 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 
                 var user = FindWhoBookedServer(serverNumber);
 
-                console.log('user ---');
                 console.log(user);
 
                 var userID = user.id;
@@ -294,7 +291,7 @@ discordBot.on("message", msg => {
 
         if (command[0] === "forcebook" && command[1] !== null) {
             pendingRequests[userID] = "booking";
-            ircBot.say("#ozf-help", "!book 3 " + command[1]);
+            ircBot.say("#ozf-help", "!book 3 u" + command[1]);
             console.log('force book: ' + command[1]);
         }
 
@@ -318,8 +315,8 @@ function BookServer(user) {
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
 
-                if (server["Booker"] === userID) {
-                    console.log("(Failed) " + username + " | " + userID + " has already booked a server.");
+                if (server["Booker"] === ("u" + userID)) {
+                    console.log("(Failed) " + username + " | u" + userID + " has already booked a server.");
                     user.sendMessage("You already have an ongoing server booking as " + username + ".");
                     return;
                 }
@@ -334,7 +331,7 @@ function BookServer(user) {
             }
 
             pendingRequests[userID] = "booking";
-            ircBot.say("#ozf-help", "!book 3 " + userID);
+            ircBot.say("#ozf-help", "!book 3 u" + userID);
 
         });
     }
@@ -362,7 +359,7 @@ function UnbookServer(user) {
                 var server = serverList[i];
 
                 // Found a server who was booked under <username>
-                if (server["Booker"] === userID) {
+                if (server["Booker"] === ("u" + userID)) {
                     // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
                     if (verifyUserFor[server["Number"]] === userID) {   // This can probably be removed
                         
