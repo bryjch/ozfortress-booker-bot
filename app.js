@@ -87,20 +87,14 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 
                 var user = FindWhoBookedServer(serverNumber);
 
+                console.log("Details for function ---");
                 console.log(user);
 
                 var userID = user.id;
-                //var username = Alphanumeric(user.username);
-
-                if (pendingRequests[userID] !== "booking") {    // Dont think this will ever occur maybe remove?
-                    user.sendMessage("Do you have a duplicate username?");
-                    user.sendMessage("Your request has been cancelled.");
-                }
-                else {
-                    user.sendMessage("\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
-                    pendingRequests[userID] = serverDetails;
-                    verifyUserFor[serverNumber] = userID;
-                }
+                
+                user.sendMessage("\nYour booking for **Server " + serverNumber + "** under **" + user.name + user.discriminator + "** lasts 3 hour(s):\n```" + serverDetails + "```\n");
+                pendingRequests[userID] = serverDetails;
+                verifyUserFor[serverNumber] = userID;
             }
             catch (error) { console.log(error); }
         });
@@ -234,11 +228,13 @@ discordBot.on("message", msg => {
         }
 
         // --------------- REQUEST DEMOS --------------- //
-        if (command[0] === "demos1" || command[0] === "demo1") {
+        if (command[0] === "demos" || command[0] === "demo") {
 
             var target = (typeof command[1] !== "undefined") ? command[1] : username;
 
             console.log("\n[DEMO REQUEST for " + target + "] " + username + " | " + userID);
+
+            RequestDemos(user, target);
 
             pendingRequests[userID] = target;
 
@@ -291,7 +287,7 @@ discordBot.on("message", msg => {
 
         if (command[0] === "forcebook" && command[1] !== null) {
             pendingRequests[userID] = "booking";
-            ircBot.say("#ozf-help", "!book 3 u" + command[1]);
+            ircBot.say("#ozf-help", "!book 3 " + command[1]);
             console.log('force book: ' + command[1]);
         }
 
@@ -316,17 +312,17 @@ function BookServer(user) {
             var userID = user.id;
             var discriminator = user.discriminator;
 
-            // Make sure user hasn't already booked a server. This also prevents spoofers from booking again.
+            // Make sure user hasn't already booked a server. If so, resend details.
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
 
                 console.log(server["Booker"] + ' vs ' + username + discriminator);
                 if (server["Booker"] === (username + discriminator)) {
                     console.log("(Failed) " + username + " | " + username + discriminator + " has already booked a server.");
-                    user.sendMessage("You already have an ongoing server booking as " + username + ".");
+                    user.sendMessage("You have already booked **Server " + (i + 1) + "** under **" + username + discriminator + "**.");
 
                     // Resend details
-                    user.sendMessage(pendingRequests[userID]);
+                    user.sendMessage('```' + pendingRequests[userID] + '```');
 
                     return;
                 }
@@ -340,6 +336,7 @@ function BookServer(user) {
                 return;
             }
 
+            console.log("No server booking found under " + username + userID + ". Get him a server!");
             pendingRequests[userID] = "booking";
             //ircBot.say("#ozf-help", "!book 3 u" + userID);
             ircBot.say("#ozf-help", "!book 3 " + username + discriminator); //e.g. smeso4522
@@ -390,6 +387,10 @@ function UnbookServer(user) {
     catch (error) {
         console.log(error);
     }
+}
+
+function RequestDemos(user, target) {
+
 }
 
 // ----- HELPFUL FUNCTIONS ----- //
