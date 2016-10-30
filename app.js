@@ -92,7 +92,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
 
                 var userID = user.id;
                 
-                user.sendMessage("\nYour booking for **Server " + serverNumber + "** under **" + user.name + user.discriminator + "** lasts 3 hour(s):\n```" + serverDetails + "```\n");
+                user.sendMessage("\nYour booking for **Server " + serverNumber + "** under **" + user.username + user.discriminator + "** lasts 3 hour(s):\n```" + serverDetails + "```\n");
                 pendingRequests[userID] = serverDetails;
                 verifyUserFor[serverNumber] = userID;
             }
@@ -104,18 +104,27 @@ ircBot.addListener("notice", function (from, to, text, message) {
     // [iPGN-TF2] :  � Demos for <targetUser> are available at <downloadLink> �
 
     if (msg[1] === "Demos" && msg[2] === "for") {
-        var targetUser = msg[3];    // The person who's demos will be shown
-        var downloadLink = msg[7];
+        try {
+            var targetUser = msg[3];    // The person who's demos will be shown
+            var downloadLink = msg[7];
+            
+            console.log('received demo details for ' + targetUser);
 
-        //Check which users have a pending demo request for <targetUser>
-        for (var userID in pendingRequests) {
+            //Check which users have a pending demo request for <targetUser>
+            for (var userID in pendingRequests) {
+                
+                if (pendingRequests[userID].includes(targetUser)) {
+                    user = discordBot.users.find('id', userID);
+                    user.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
+                    
+                    var removeIndex = pendingRequests[userID].indexOf(targetUser);
+                    pendingRequests[userID].splice(removeIndex, 1);
 
-            if (pendingRequests[userID] === targetUser) {
-                user = discordBot.users.find('id', userID);
-                user.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
-                pendingRequests[userID] = "";
+                    console.log("Pending requests is now: " + pendingRequests[userID]);
+                }
             }
         }
+        catch (error) { console.log(error); }
     }
 
     // Received server status information (/servers) --- Update server link and try again
@@ -235,10 +244,6 @@ discordBot.on("message", msg => {
             console.log("\n[DEMO REQUEST for " + target + "] " + username + " | " + userID);
 
             RequestDemos(user, target);
-
-            pendingRequests[userID] = target;
-
-            ircBot.say("#ozf-help", "!demos " + target);
         }
 
         // --------------- REQUEST SERVER LIST--------------- //
@@ -301,7 +306,8 @@ discordBot.on("message", msg => {
         }
 
         if (command[0] === "allusers" && command[1] !== null) {
-            FindDiscordUsers(command[1]);
+            //FindDiscordUsers(command[1]);
+            //user.sendMessage("**" + user.username + user.discriminator + "** (");
         }
     }
 });
@@ -393,21 +399,28 @@ function UnbookServer(user) {
 }
 
 function RequestDemos(user, target) {
+    var usernames = FindDiscordUsers(target);
 
+    for (var username in usernames) {
+        console.log(usernames[username]);
+        ircBot.say("#ozf-help", "!demos " + usernames[username]);
+    }
+    pendingRequests[user.id] = usernames;
 }
 
-function FindDiscordUsers(username) {
+function FindDiscordUsers(username, type) {
     try {
         var guilds = discordBot.guilds;
         var guildIDs = guilds.keys();
-        
         var foundUsers = [];
         
-        console.log("Searching for " + username);
+        console.log("Searching for (" + username + ")");
         
+        // Look through all guilds
         guilds.forEach(function (guild) {
             var members = guild.members;
             
+            // Look through all members in the guild
             members.forEach(function (member) {
                 var user = member.user;
                 
@@ -417,9 +430,8 @@ function FindDiscordUsers(username) {
             });
         });
         
-        console.log('Found ' + foundUsers.length + ' ' + username + '(s):');
-        console.log(foundUsers);
-
+        console.log('Found ' + foundUsers.length + ' ' + username + '(s): ' + foundUsers);
+ 
         return foundUsers;
     }
     catch (error) { console.log(error); }
