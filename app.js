@@ -111,7 +111,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 
                 if (pendingRequests[userID].includes(targetUser)) {
                     user = discordBot.users.find('id', userID);
-                    user.sendMessage("Demos for **" + targetUser + "** are available at:\n" + downloadLink);
+                    user.sendMessage("Demos for **" + targetUser + "** are available at: " + downloadLink);
                     
                     var removeIndex = pendingRequests[userID].indexOf(targetUser);
                     pendingRequests[userID].splice(removeIndex, 1);
@@ -307,7 +307,7 @@ function BookServer(user) {
 
                 if (server["Booker"] === (username + discriminator)) {
                     console.log("(Failed) " + username + " | " + username + discriminator + " has already booked a server.");
-                    user.sendMessage("You have already booked **Server " + (i + 1) + "** under **" + username + discriminator + "**.\n ```" + pendingRequests[userID] + "```");
+                    user.sendMessage("You have already booked **Server " + (i + 1) + "** under **" + username + discriminator + "**: ```" + pendingRequests[userID] + "```");
 
                     return;
                 }
