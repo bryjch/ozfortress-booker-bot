@@ -86,10 +86,6 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 var serverDetails = msg.slice(6, 12).join(" ");
                 
                 var user = FindWhoBookedServer(serverNumber);
-
-                console.log("Details for function ---");
-                console.log(user);
-
                 var userID = user.id;
                 
                 user.sendMessage("\nYour booking for **Server " + serverNumber + "** under **" + user.username + user.discriminator + "** lasts 3 hour(s):\n```" + serverDetails + "```\n");
@@ -119,8 +115,6 @@ ircBot.addListener("notice", function (from, to, text, message) {
                     
                     var removeIndex = pendingRequests[userID].indexOf(targetUser);
                     pendingRequests[userID].splice(removeIndex, 1);
-
-                    console.log("Pending requests is now: " + pendingRequests[userID]);
                 }
             }
         }
@@ -279,7 +273,7 @@ discordBot.on("message", msg => {
         }
 
         // Fix needed if IRC login is from different hostmask
-        if (command[0] === "authcookie" && command[1] !== null) {
+        if (command[0] === "authcookie" && command[1] !== undefined) {
             if (command[1] === "request") {
                 ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie " + process.env.IRC_USERNAME);
                 console.log("Authcookie request sent to email address of " + process.env.IRC_USERNAME + ".");
@@ -290,9 +284,9 @@ discordBot.on("message", msg => {
             }
         }
 
-        if (command[0] === "find" && command[1] !== null) {
+        if (command[0] === "find" && command[1] !== undefined) {
             var users = FindDiscordUsers(command[1]);
-            user.sendMessage("Found *" + users.length + "* users called **" + command[1] + "**:```" + users + "```");
+            user.sendMessage("Found *" + users.length + "* users called **" + command[1] + "**:```" + users + ".```");
         }
     }
 });
@@ -383,11 +377,12 @@ function UnbookServer(user) {
     }
 }
 
+// ----- HELPFUL FUNCTIONS ----- //
+
 function RequestDemos(user, target) {
     var usernames = FindDiscordUsers(target);
 
     for (var username in usernames) {
-        console.log(usernames[username]);
         ircBot.say("#ozf-help", "!demos " + usernames[username]);
     }
     pendingRequests[user.id] = usernames;
@@ -398,8 +393,6 @@ function FindDiscordUsers(username, type) {
         var guilds = discordBot.guilds;
         var guildIDs = guilds.keys();
         var foundUsers = [];
-        
-        console.log("Searching for (" + username + ")");
         
         // Look through all guilds
         guilds.forEach(function (guild) {
@@ -415,14 +408,11 @@ function FindDiscordUsers(username, type) {
             });
         });
         
-        console.log('Found ' + foundUsers.length + ' ' + username + '(s): ' + foundUsers);
- 
         return foundUsers;
     }
     catch (error) { console.log(error); }
 }
 
-// ----- HELPFUL FUNCTIONS ----- //
 
 function FindWhoBookedServer(number) {
 
@@ -443,19 +433,7 @@ function FindWhoBookedServer(number) {
             if (user["discriminator"] === discriminator) {
                return user;
             }
-
         }
-
-        /*
-        for (var user in users) {
-            console.log(user);
-            console.log(user + " - " + user["discriminator"] + " vs" +discriminator);
-            if (user["discriminator"] === discriminator) {
-                console.log("user (" + username + " with disc (" + discriminator + ") found.");
-                return user;
-            }
-        }
-        */
     }
     catch (error) { console.log(error); }
 }
