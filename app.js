@@ -98,7 +98,7 @@ ircBot.addListener("notice", function (from, to, text, message) {
                 }
                 else {
                     user.sendMessage("\nYour booking details for **Server " + serverNumber + "**:\n\n```" + serverDetails + "```\n");
-                    pendingRequests[userID] = "";
+                    pendingRequests[userID] = serverDetails;
                     verifyUserFor[serverNumber] = userID;
                 }
             }
@@ -320,9 +320,14 @@ function BookServer(user) {
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
 
-                if (server["Booker"] === (userID + discriminator)) {
-                    console.log("(Failed) " + username + " | u" + userID + " has already booked a server.");
+                console.log(server["Booker"] + ' vs ' + username + discriminator);
+                if (server["Booker"] === (username + discriminator)) {
+                    console.log("(Failed) " + username + " | " + username + discriminator + " has already booked a server.");
                     user.sendMessage("You already have an ongoing server booking as " + username + ".");
+
+                    // Resend details
+                    user.sendMessage(pendingRequests[userID]);
+
                     return;
                 }
             }
@@ -400,20 +405,13 @@ function FindWhoBookedServer(number) {
         var username = user.substring(0, user.length - 4); // smeso
         var discriminator = user.substring(user.length - 4);   // 4522
 
-        console.log('user: ' + user + " | username: " + username + " | discriminator: " + discriminator);
-
         var users = discordBot.users.findAll('username', username);
-
-        console.log(users);
 
         for (var i = 0; i < users.length; i++) {
             var user = users[i];
-            console.log(user);
-            console.log(user + " - " + user["discriminator"] + " vs" +discriminator);
 
             if (user["discriminator"] === discriminator) {
-                console.log("user (" + username + " with disc (" + discriminator + ") found.");
-                return user;
+               return user;
             }
 
         }
