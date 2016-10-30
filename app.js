@@ -39,7 +39,7 @@ ircBot.connect(5, function () {
 
         ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
 
-        UpdateServerList(); 
+        UpdateServerList();
     });
 });
 
@@ -188,7 +188,7 @@ function UpdateServerList(callback) {
 // This bot sits in the ozfortress Discord channel waiting for messages from
 // the user (!book, !unbook, !help).
 
-var discordBot = new Discord.Client();
+var discordBot = new Discord.Client( { fetchAllMembers: true } );
 
 discordBot.login(process.env.BOT_TOKEN);
 
@@ -300,8 +300,8 @@ discordBot.on("message", msg => {
             FindWhoBookedServer(command[1]);
         }
 
-        if (command[0] === "allusers") {
-            
+        if (command[0] === "allusers" && command[1] !== null) {
+            FindDiscordUsers(command[1]);
         }
     }
 });
@@ -396,8 +396,33 @@ function RequestDemos(user, target) {
 
 }
 
-function GetDiscordUser(username, discriminator) {
+function FindDiscordUsers(username) {
+    try {
+        var guilds = discordBot.guilds;
+        var guildIDs = guilds.keys();
+        
+        var foundUsers = [];
+        
+        console.log("Searching for " + username);
+        
+        guilds.forEach(function (guild) {
+            var members = guild.members;
+            
+            members.forEach(function (member) {
+                var user = member.user;
+                
+                if (Alphanumeric(user.username) === username) {
+                    foundUsers.push(user.username + user.discriminator);
+                }
+            });
+        });
+        
+        console.log('Found ' + foundUsers.length + ' ' + username + '(s):');
+        console.log(foundUsers);
 
+        return foundUsers;
+    }
+    catch (error) { console.log(error); }
 }
 
 // ----- HELPFUL FUNCTIONS ----- //
@@ -446,7 +471,9 @@ function UnstuckUser(user) {
 }
 
 function Alphanumeric(string) {
-    return string.replace(/[^a-z0-9]/gi, "");
+    string = string.replace(" ", "");
+    string = string.replace(/[^a-z0-9]/gi, "");
+    return string;
 }
 
 // ----- MISC PROGRAM LISTENERS ----- //
