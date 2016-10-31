@@ -239,6 +239,16 @@ discordBot.on("message", msg => {
 
             RequestDemos(user, target);
         }
+    
+    if (command[0] === "demoslegacy" || command[0] === "demolegacy") {
+
+        var target = (typeof command[1] !== "undefined") ? command[1] : username;
+
+        console.log("\n[DEMO LEGACY REQUEST for " + target + "] " + username + " | " + userID);
+
+        RequestDemosLegacy(user, target);
+
+    }
 
         // --------------- REQUEST SERVER LIST--------------- //
         if (command[0] === "servers" || command[0] === "status") {
@@ -257,11 +267,12 @@ discordBot.on("message", msg => {
 
             msg.channel.sendMessage("```       Discord Server Booker Usage\n" +
                                     "-----------------------------------------\n" +
-                                    "/book          -  Book a new server\n" +
-                                    "/unbook        -  Return a server\n" +
-                                    "/demos <user>  -  Get STV demo link (user optional)\n" +
-                                    "/servers       -  List the status of all servers\n" +
-                                    "/help          -  You get this, ya dingus!\n\n" +
+                                    "/book                  -  Book a new server\n" +
+                                    "/unbook                -  Return a server\n" +
+                                    "/demos <user>          -  Get STV demo link (user optional)\n" +
+                                    "/demoslegacy <user>    -  Old IRC style demo search\n" +
+                                    "/servers               -  List the status of all servers\n" +
+                                    "/help                  -  You get this, ya dingus!\n\n" +
                                     "Commands can be sent in the #bookings channel or via PM to the bot.\n" +
                                     "Bot written by smeso. Big thanks to bladez's IRC booker!```");
         }
@@ -411,6 +422,19 @@ function RequestDemos(user, target) {
             ircBot.say("#ozf-help", "!demos " + usernames[username]);
         }
         pendingRequests[user.id] = usernames;
+    }
+    catch (error) { console.log(error); }
+}
+
+function RequestDemosLegacy(user, target) {
+    try {
+        ircBot.say("#ozf-help", "!demos " + target);
+        
+        var t = [];
+        t.push(target);
+
+        pendingRequests[user.id] = t;
+        
     }
     catch (error) { console.log(error); }
 }
