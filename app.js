@@ -374,32 +374,84 @@ function UnbookServer(user) {
 // ----- HELPFUL FUNCTIONS ----- //
 
 function RequestDemos(user, target) {
-    var usernames = FindDiscordUsers(target);
+    try {
+        // check if full name was given
+        
+        console.log('request for ' + target);
+               
+        var lastChars = target.substring(target.length - 4);
+ 
+        if (IsNormalInteger(lastChars)) {
+            console.log(lastChars + ' is integer');
+        
+            // attempt a <username><discriminator> search
 
-    for (var username in usernames) {
-        ircBot.say("#ozf-help", "!demos " + usernames[username]);
+            var fullname = FindDiscordUsers(target, "fullname");
+            
+            console.log(fullname);
+
+            if (fullname.length !== 1) {  // There should be only 1 correct fullname
+                console.log('failure');
+
+            }
+            else {
+                user.sendMessage("Found specific user **" + fullname + "**:");
+                ircBot.say("#ozf-help", "!demos " + fullname);
+
+                pendingRequests[user.id] = fullname;
+                return;
+            }
+        }
+
+        var usernames = FindDiscordUsers(target);
+        
+        user.sendMessage("Found *" + usernames.length + "* users called **" + target + "**:");
+        
+        for (var username in usernames) {
+            ircBot.say("#ozf-help", "!demos " + usernames[username]);
+        }
+        pendingRequests[user.id] = usernames;
     }
-    pendingRequests[user.id] = usernames;
+    catch (error) { console.log(error); }
 }
 
-function FindDiscordUsers(username, type) {
+function FindDiscordUsers(searchName, type) {
     try {
         var guilds = discordBot.guilds;
         var guildIDs = guilds.keys();
         var foundUsers = [];
         
+        searchName = Alphanumeric(searchName).toUpperCase();
+        
         // Look through all guilds
         guilds.forEach(function (guild) {
             var members = guild.members;
             
-            // Look through all members in the guild
-            members.forEach(function (member) {
-                var user = member.user;
-                
-                if (Alphanumeric(user.username) === username) {
-                    foundUsers.push(user.username + user.discriminator);
-                }
-            });
+            // This only occurs if user explicitly specifies username + discriminator (fullname)
+            if (type === "fullname") {
+                members.forEach(function (member) {
+                    var user = member.user;
+                    var fullname = Alphanumeric(user.username) + user.discriminator;
+                    
+                    if (fullname.toUpperCase() === searchName) {
+                        console.log("fullname: " + fullname);
+                        foundUsers.push(fullname);
+                    }
+                });
+            }
+            else {
+                members.forEach(function (member) {
+                    var user = member.user;
+                    var username = Alphanumeric(user.username);
+                    
+                    if (username.toUpperCase() === searchName) {
+                        if (type === "id")
+                            foundUsers.push(user);
+                        else
+                            foundUsers.push(username + user.discriminator);
+                    }
+                });
+            }
         });
         
         return foundUsers;
@@ -420,6 +472,8 @@ function FindWhoBookedServer(number) {
         var discriminator = user.substring(user.length - 4);   // 4522
 
         var users = discordBot.users.findAll('username', username);
+        
+        var users = FindDiscordUsers(username, "id");
 
         for (var i = 0; i < users.length; i++) {
             var user = users[i];
@@ -443,6 +497,10 @@ function Alphanumeric(string) {
     string = string.replace(" ", "");
     string = string.replace(/[^a-z0-9]/gi, "");
     return string;
+}
+
+function IsNormalInteger(str) {
+    return /^\+?\d+$/.test(str);
 }
 
 // ----- MISC PROGRAM LISTENERS ----- //
