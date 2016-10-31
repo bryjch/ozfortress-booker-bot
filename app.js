@@ -307,11 +307,17 @@ discordBot.on("message", msg => {
 function BookServer(user) {
     try {
         UpdateServerList(function () {
-
+            
             var username = Alphanumeric(user.username);
             var userID = user.id;
             var discriminator = user.discriminator;
-
+            
+            if (!(/[a-zA-z]/.test(username))) { // Username doesn't have letter(s)
+                console.log('idiot');
+                user.sendMessage("Sorry, your username has to contain at least one alphabetical letter.");
+                return;
+            }
+           
             // Make sure user hasn't already booked a server. If so, resend details.
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
@@ -351,6 +357,12 @@ function UnbookServer(user) {
             var userID = user.id;
             var discriminator = user.discriminator;
 
+            if (!(/[a-zA-z]/.test(username))) { // Username doesn't have letter(s)
+                console.log('idiot');
+                user.sendMessage("Sorry, your username has to contain at least one alphabetical letter.");
+                return;
+            }
+            
             // Prevent conflicting or multiple user command inputs
             if (pendingRequests[userID] === "booking") {
                 console.log("(Failed) User needs to finish booking first.");
@@ -495,7 +507,7 @@ function FindWhoBookedServer(number) {
         var username = user.substring(0, user.length - 4); // smeso
         var discriminator = user.substring(user.length - 4);   // 4522
 
-        var users = discordBot.users.findAll('username', username);
+        //var users = discordBot.users.findAll('username', username);
         
         var users = FindDiscordUsers(username, "id");
 
