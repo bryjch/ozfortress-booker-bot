@@ -1,0 +1,8 @@
+{
+    "server": "irc.web.gamesurge.net",
+    "nickname": "BookerBot",
+    "username": "ozfortressBookerBot",
+    "realname": "Booker Dewitt",
+    "channel": "#ozf-help",
+    "authServer": "AuthServ@Services.GameSurge.net"
+}
