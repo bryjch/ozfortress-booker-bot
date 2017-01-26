@@ -3,6 +3,7 @@ var ParseServerList = require("./parse-server-list.js");
 var IRC = require("irc");
 var http = require("http");
 var columnify = require("columnify");
+var settings = require("./settings.js")
 
 "use strict";
 
@@ -20,24 +21,25 @@ var serverStatusLink = "";  // Current HTTP address to get server information
 // Discord bot.
 
 // Initialize IRC Bot
-var ircBot = new IRC.Client("irc.web.gamesurge.net", "BookerBot",
+var ircBot = new IRC.Client(settings.irc.server, settings.irc.nickname,
 {
     sasl: true,
-    userName: 'OzfortressBookerBot',
-    realName: 'Booker Dewitt',
+    userName: settings.irc.username,
+    realName: settings.irc.realname,
     autoConnect: false
 });
 
 // Connect to the #ozf-help IRC server and authenticate
 ircBot.connect(5, function () {
 
-    console.log("IRC Bot connected to GameSurge.");
+    console.log(`IRC Bot connected to ${ircBot.server}.`);
 
-    ircBot.join("#ozf-help", function () {
+    ircBot.join(settings.irc.channel, function () {
 
-        console.log("IRC Bot connected to #ozf-help.\n");
+        console.log(`IRC Bot connected to ${settings.irc.channel}.\n`);
 
-        ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "auth " + process.env.IRC_USERNAME + " " + process.env.IRC_PASSWORD);
+        var command = `auth ${settings.secrets.irc_username} ${settings.secrets.irc_password}`;
+        ircBot.send("PRIVMSG", settings.irc.authServer, command);
 
         UpdateServerList();
     });
@@ -84,10 +86,10 @@ ircBot.addListener("notice", function (from, to, text, message) {
             try {
                 var serverNumber = msg[4];
                 var serverDetails = msg.slice(6, 12).join(" ");
-                
+
                 var user = FindWhoBookedServer(serverNumber);
                 var userID = user.id;
-                
+
                 user.sendMessage("\nYour booking for **Server " + serverNumber + "** under **" + user.username + user.discriminator + "** lasts 3 hour(s):\n```" + serverDetails + "```\n");
                 pendingRequests[userID] = serverDetails;
                 verifyUserFor[serverNumber] = userID;
@@ -103,16 +105,16 @@ ircBot.addListener("notice", function (from, to, text, message) {
         try {
             var targetUser = msg[3];    // The person who's demos will be shown
             var downloadLink = msg[7];
-            
+
             console.log('received demo details for ' + targetUser);
 
             //Check which users have a pending demo request for <targetUser>
             for (var userID in pendingRequests) {
-                
+
                 if (pendingRequests[userID].includes(targetUser)) {
                     user = discordBot.users.find('id', userID);
                     user.sendMessage("Demos for **" + targetUser + "** are available at: " + downloadLink);
-                    
+
                     var removeIndex = pendingRequests[userID].indexOf(targetUser);
                     pendingRequests[userID].splice(removeIndex, 1);
                 }
@@ -193,7 +195,7 @@ function UpdateServerList(callback) {
 
 var discordBot = new Discord.Client( { fetchAllMembers: true } );
 
-discordBot.login(process.env.BOT_TOKEN);
+discordBot.login(settings.secrets.discord_token);
 
 discordBot.on("message", msg => {
 
@@ -239,7 +241,7 @@ discordBot.on("message", msg => {
 
             RequestDemos(user, target);
         }
-    
+
     if (command[0] === "demoslegacy" || command[0] === "demolegacy") {
 
         var target = (typeof command[1] !== "undefined") ? command[1] : username;
@@ -286,11 +288,11 @@ discordBot.on("message", msg => {
         // Fix needed if IRC login is from different hostmask
         if (command[0] === "authcookie" && command[1] !== undefined) {
             if (command[1] === "request") {
-                ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "authcookie " + process.env.IRC_USERNAME);
-                console.log("Authcookie request sent to email address of " + process.env.IRC_USERNAME + ".");
+                ircBot.send("PRIVMSG", settings.irc.authServer, `authcookie ${settings.secrets.irc_username}`);
+                console.log(`Authcookie request sent to email address of ${settings.secrets.irc_username}.`);
             }
             else {
-                ircBot.send("PRIVMSG", "AuthServ@Services.GameSurge.net", "cookie " + process.env.IRC_USERNAME + " " + command[1]);
+                ircBot.send("PRIVMSG", settings.irc.authServer `cookie ${settings.secrets.irc_username} ${command[1]}`);
                 console.log("Attempted to authenticate with cookie: " + command[1]);
             }
         }
@@ -307,17 +309,17 @@ discordBot.on("message", msg => {
 function BookServer(user) {
     try {
         UpdateServerList(function () {
-            
+
             var username = Alphanumeric(user.username);
             var userID = user.id;
             var discriminator = user.discriminator;
-            
+
             if (!(/[a-zA-z]/.test(username))) { // Username doesn't have letter(s)
                 console.log('idiot');
                 user.sendMessage("Sorry, your username has to contain at least one alphabetical letter.");
                 return;
             }
-           
+
             // Make sure user hasn't already booked a server. If so, resend details.
             for (var i = 0; i < serverList.length; i++) {
                 var server = serverList[i];
@@ -362,7 +364,7 @@ function UnbookServer(user) {
                 user.sendMessage("Sorry, your username has to contain at least one alphabetical letter.");
                 return;
             }
-            
+
             // Prevent conflicting or multiple user command inputs
             if (pendingRequests[userID] === "booking") {
                 console.log("(Failed) User needs to finish booking first.");
@@ -376,8 +378,8 @@ function UnbookServer(user) {
 
                 // Found a server who was booked under <username>
                 if (server["Booker"] === (username + discriminator)) {
-                    
-                    // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)                        
+
+                    // Check if the /unbook caller is the actual Discord user via ID (as opposed to username spoofer)
                     ircBot.say("#ozf-help", "!reset " + server["Number"]);
                     user.sendMessage("You have successfully unbooked **Server " + server["Number"] + "**.");
                     verifyUserFor[server["Number"]] = "";
@@ -399,18 +401,18 @@ function UnbookServer(user) {
 function RequestDemos(user, target) {
     try {
         // check if full name was given
-        
+
         console.log('request for ' + target);
-               
+
         var lastChars = target.substring(target.length - 4);
- 
+
         if (IsNormalInteger(lastChars)) {
             console.log(lastChars + ' is integer');
-        
+
             // attempt a <username><discriminator> search
 
             var fullname = FindDiscordUsers(target, "fullname");
-            
+
             console.log(fullname);
 
             if (fullname.length !== 1) {  // There should be only 1 correct fullname
@@ -427,9 +429,9 @@ function RequestDemos(user, target) {
         }
 
         var usernames = FindDiscordUsers(target);
-        
+
         user.sendMessage("Found *" + usernames.length + "* users called **" + target + "**:");
-        
+
         for (var username in usernames) {
             ircBot.say("#ozf-help", "!demos " + usernames[username]);
         }
@@ -441,12 +443,12 @@ function RequestDemos(user, target) {
 function RequestDemosLegacy(user, target) {
     try {
         ircBot.say("#ozf-help", "!demos " + target);
-        
+
         var t = [];
         t.push(target);
 
         pendingRequests[user.id] = t;
-        
+
     }
     catch (error) { console.log(error); }
 }
@@ -456,19 +458,19 @@ function FindDiscordUsers(searchName, type) {
         var guilds = discordBot.guilds;
         var guildIDs = guilds.keys();
         var foundUsers = [];
-        
+
         searchName = Alphanumeric(searchName).toUpperCase();
-        
+
         // Look through all guilds
         guilds.forEach(function (guild) {
             var members = guild.members;
-            
+
             // This only occurs if user explicitly specifies username + discriminator (fullname)
             if (type === "fullname") {
                 members.forEach(function (member) {
                     var user = member.user;
                     var fullname = Alphanumeric(user.username) + user.discriminator;
-                    
+
                     if (fullname.toUpperCase() === searchName) {
                         console.log("fullname: " + fullname);
                         foundUsers.push(fullname);
@@ -479,7 +481,7 @@ function FindDiscordUsers(searchName, type) {
                 members.forEach(function (member) {
                     var user = member.user;
                     var username = Alphanumeric(user.username);
-                    
+
                     if (username.toUpperCase() === searchName) {
                         if (type === "id")
                             foundUsers.push(user);
@@ -489,7 +491,7 @@ function FindDiscordUsers(searchName, type) {
                 });
             }
         });
-        
+
         return foundUsers;
     }
     catch (error) { console.log(error); }
@@ -508,7 +510,7 @@ function FindWhoBookedServer(number) {
         var discriminator = user.substring(user.length - 4);   // 4522
 
         //var users = discordBot.users.findAll('username', username);
-        
+
         var users = FindDiscordUsers(username, "id");
 
         for (var i = 0; i < users.length; i++) {

@@ -211,3 +211,11 @@ GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
 BookerBot.sln
+
+# Editors
+*.njsproj
+.vscode/
+
+# secrets
+config/secrets.json
+
